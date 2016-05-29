@@ -8,11 +8,11 @@ _These book notes were taken to further my own learning and for quick reference.
 
 _HTTP_ is the common language between _web browsers_, _web servers_ and related _web applications_. HTTP moves data reliably from web servers to web browsers, without worry about the flaws of internet data transmission.
 
-Web servers are also called _HTTP servers_ as they use HTTP protocol. They host web content: _web resources_. HTTP servers provide their content upon request. The client sends a HTTP request and servers retrieve a HTTP response.
+Web servers host web content, also referred as _web resources_. Web servers provide web content upon request. The client sends a HTTP request and servers retrieve a HTTP response.
 
-The simplest kind of web resource is static files stored in the web server's filesystem. These can be simple text files, _HTML_ files, _JPEG_ image files, _AVI_ movie files, or any other file. **Resources can also be software programs that generate content on demand**.
+The simplest kind of web resources is static files stored in the web server's filesystem. They can be simple text files, _HTML_ files, _JPEG_ image files, _AVI_ movie files, or any other file. **Resources can also be software programs that generate content on demand**.
 
-HTTP tags each data type being transported with a label called _MIME type_. A MIME type is a text label, represented by a primary object type and a specific subtype, separated by a slash. There are hundreds of popular MIME types, here are a few:
+HTTP tags each data type being transferred with a label called _MIME type_. A MIME type is a text label, represented by a primary object type and a specific subtype, separated by a slash. There are hundreds of popular MIME types, here are a few:
 
 Data Type       | MIME label
 :-------------- | :--------------
@@ -163,8 +163,102 @@ SPACE     | (0x20)     | <http://www.joes-hardware.com/more%20tools.html>
 
 Scheme | Description
 :----- | :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-http   | Item Two Basic form: `http://<host>:<port>/<path>?<query>#<frag>`
+http   | Basic form: `http://<host>:<port>/<path>?<query>#<frag>`
 https  | The https scheme is a twin to the http scheme. The only difference is that the https scheme uses Secure Sockets Layer (SSL), which provides end-to-end encryption of HTTP connections. Basic form: `https://<host>:<port>/<path>?<query>#<frag>`
 mailto | Mailto URLs refer to email addresses. Basic form: `mailto:<RFC-822-addr-spec>`
 ftp    | File Transfer Protocol URLs. Basic forms: `ftp://<user>:<password>@<host>:<port>/<path>;<params>`
 file   | The file scheme denotes files directly accessible on a given host machine (by local disk, a network filesystem). Basic form: `file://<host>/<path>`
+
+## Chapter 3: HTTP Messages
+
+HTTP messages are the blocks of data sent between HTTP applications. These blocks of data begin with some text meta-information describing the message con- tents and meaning, followed by optional data. These messages flow between clients, servers, and proxies. The terms **inbound**, **outbound**, **upstream**, and **downstream** describe message direction.
+
+HTTP uses the terms inbound and outbound to describe transactional direction. Messages travel inbound to the origin server, and when their work is done, they travel outbound back to the user agent.
+
+All messages flow downstream, regardless of whether they are request messages or response messages. The sender of any message is upstream of the receiver.
+
+HTTP messages consist of three parts: a start line describing the message, a block of headers containing attributes, and an optional body containing data. The start line and headers are just ASCII text, broken up by lines. The entity body or message body (or just plain "body") is simply an optional chunk of data. Unlike the start line and headers, the body can contain text or binary data or can be empty.
+
+### Message Syntax
+
+All HTTP messages fall into two types: **request messages** and **response messages**. Request messages request an action from a web server. Response messages carry results of a request back to a client. Here's the format for a request message:
+
+```
+<method> <request-URL> <version>
+<headers>
+<entity-body>
+```
+
+Here's the format for a response message (note that the syntax differs only in the start line):
+
+```
+<version> <status> <reason-phrase>
+<headers>
+<entity-body>
+```
+
+Name          | Description
+:------------ | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+method        | The action that the client wants the server to perform on the resource. It is a single word, like "GET," "HEAD," or "POST".
+request-URL   | A complete URL naming the requested resource, or the path component of the URL. If you are talking directly to the server, the path component of the URL is usually okay as long as it is the absolute path to the resource, the server can assume itself as the host/port of the URL.
+version       | The version of HTTP that the message is using.
+status-code   | A three-digit number describing what happened during the request.
+reason-phrase | A human-readable version of the numeric status code.
+headers       | Zero or more headers, each of which is a name, followed by a colon (:), followed by optional whitespace, followed by a value, followed by a CRLF. The headers are terminated by a blank line (CRLF), marking the end of the list of headers and the beginning of the entity body.
+entity-body   | The entity body contains a block of arbitrary data. Not all messages contain entity bodies.
+
+### Methods
+
+The method begins the start line of requests, telling the server what to do.
+
+Methods | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Has message body
+:------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------
+GET     | GET is the most common method. It usually is used to ask a server to send a resource.                                                                                                                                                                                                                                                                                                                                                                          | NO
+HEAD    | The HEAD method behaves exactly like the GET method, but the server returns only the headers in the response.                                                                                                                                                                                                                                                                                                                                                  | NO
+POST    | The POST method was designed to send input data to the server.* In practice, it is often used to support HTML forms. The data from a filled-in form typically is sent to the server, which then marshals it off to where it needs to go (e.g., to a server gateway program, which then processes it). POST is used to send data to a server. PUT is used to deposit data into a resource on the server (e.g., a file).                                         | YES
+PUT     | The PUT method writes documents to a server, in the inverse of the way that GET reads documents from a server. The semantics of the PUT method are for the server to take the body of the request and either use it to create a new document named by the requested URL or, if that URL already exists, use the body to replace it.                                                                                                                            | YES
+TRACE   | When a client makes a request, that request may have to travel through firewalls, proxies, gateways, or other applications. Each of these has the opportunity to modify the original HTTP request. The TRACE method allows clients to see how its request looks when it finally makes it to the server. The TRACE method is used primarily for diagnostics. It's also a good tool for see- ing the effects of proxies and other applications on your requests. | NO
+OPTIONS | The OPTIONS method asks the server to tell us about the various supported capabilities of the web server.                                                                                                                                                                                                                                                                                                                                                      | NO
+DELETE  | The DELETE method does just what you would think - it asks the server to delete the resources specified by the request URL.                                                                                                                                                                                                                                                                                                                                    | NO
+
+Not all servers implement all seven of the methods. Furthermore, because HTTP was designed to be easily extensible, other servers may implement their own request methods in addition to these. These additional methods are called **_extension methods_**.
+
+Note that not all methods are implemented by every server. To be compli- ant with HTTP Version 1.1, a server need implement only the GET and HEAD meth- ods for its resources.
+
+### Status codes
+
+As methods tell the server what to do, status codes tell the client what happened.
+
+Overall range | Defined range | Category
+:------------ | :------------ | -------------
+100-199       | 100-101       | Informational
+200-299       | 200-206       | Successful
+300-399       | 300-305       | Redirection
+400-499       | 400-415       | Client error
+500-599       | 500-505       | Server error
+
+### Headers
+
+HTTP header fields add additional information to request and response messages. They are basically just lists of name/value pairs. The HTTP specification defines several header fields. Applications also are free to invent their own home-brewed headers. HTTP headers are classified into:
+
+- **General headers** can appear in both request and response messages. For example, the Date header is a general-purpose header that allows both sides to indicate the time and date at which the message was constructed: `Date: Tue, 3 Oct 1974 02:16:00 GMT`.
+- **Request headers** provide more information about the request. For example, the following Accept header tells the server that the cli- ent will accept any media type that matches its request: `Accept: */*`.
+- **Response headers** Provide more information about the response. For example, the follow- ing Server header tells the client that it is talking to a Version 1.0 Tiki-Hut server: `Server: Tiki-Hut/1.0`.
+- **Entity headers** Describe body size and contents, or the resource itself. For example, the following Content-Type header lets the application know that the data is an HTML document in the iso-latin-1 character set: `Content-Type: text/html; charset=iso-latin-1`.
+- **Extension headers** New headers that are not defined in the specification.
+
+Each HTTP header has a simple syntax: a name, followed by a colon (:), followed by optional whitespace, followed by the field value, followed by a CRLF. Long header lines can be made more readable by breaking them into multiple lines, preceding each extra line with at least one space or tab character. For example:
+
+```
+HTTP/1.0 200 OK
+Content-Type: image/gif
+Content-Length: 8572
+Server: Test Server
+    Version 1.0
+```
+
+In this example, the response message contains a Server header whose value is bro- ken into continuation lines. The complete value of the header is "Test Server Version 1.0".
+
+### Entity Bodies
+
+The third part of an HTTP message is the optional entity body. Entity bodies are the payload of HTTP messages. They are the things that HTTP was designed to transport. HTTP messages can carry many kinds of digital data: images, video, HTML documents, software applications, credit card transactions, electronic mail, and so on.
