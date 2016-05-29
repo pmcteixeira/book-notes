@@ -24,15 +24,11 @@ JPEG            | image/jpeg
 GIF             | image/gif
 QuickTime movie | video/quicktime
 
-### URI, URL and URN
+#### URI, URL and URN
 
-A resource is uniquely identified and located by a _URI_ (_uniform resource identifier_). Given the URI, HTTP can retrieve the resource. URI come in two flavors, called URLs and URNs.
+A resource is uniquely identified and located by a _URI_ (_uniform resource identifier_). Given the URI, HTTP can retrieve the correspondent resource. URI come in two flavors, called URLs and URNs.
 
-The **uniform resource locator** (URL) is the most common form or URI. URL describes the **specific location** of a resource on a particular server. URL speficies the **protocol**, **server**, and **local resource**. E.g:
-
-> http:// www.joes-hardware.com /specials/saw-blade.gif
-
-Most URL follow a standardized format in three main parts:
+The **uniform resource locator** (URL) is the most common form or URI. URL describes the **specific location** of a resource on a particular server. Most URL follow a standardized format in three main parts:
 
 - _scheme_ (describes the protocol used)
 - _server address_
@@ -48,9 +44,9 @@ The second flavor is _uniform resource name_ or URN. A URN is a unique name to i
 
 URNs are still experimental and not yet widely adopted. To work effectively, URNs need a supporting infrastructure to resolve resource locations.
 
-### Transactions
+#### Transactions
 
-An HTTP transaction consists of a request command (sent from client to server), and a response result (sent from the server back to the client). This communication happens with formatted blocks of data called **HTTP messages**
+HTTP messages between client and server are simple, line-oriented sequences of characters. HTTP messages sent from clients to servers are called **request messages**. Messages from servers to clients are called **response messages**. _There are no other kinds of HTTP messages_. An **HTTP transaction** consists of a request message and a response message.
 
 HTTP supports several different request commands, called **HTTP methods**. Every HTTP request message has a method. The method tells the server what action to perform.
 
@@ -70,9 +66,7 @@ HTTP status code | Description
 302              | Redirect. Go someplace else to get the resource.
 404              | Not found. Can't find this resource.
 
-HTTP messages are simple, line-oriented sequences of characters. HTTP messages sent from web clients to web servers are called **request messages**. Messages from servers to clients are called **response messages**. _There are no other kinds of HTTP messages_.
-
-Request message
+Request message example:
 
 ```
 GET /test/hi-there.txt HTTP/1.0
@@ -80,7 +74,7 @@ Accept: text/*
 Accept-Language: en,fr
 ```
 
-Response message
+Response message example:
 
 ```
 HTTP/1.0 200 OK
@@ -96,18 +90,18 @@ HTTP messages consist of three parts:
 - **Header fields** Zero or more header fields follow the start line. Each header field consists of a name and a value, separated by a colon (:) for easy parsing. The headers end with a blank line. Adding a header field is as easy as adding another line.
 - **Body** After the blank line is an optional message body containing any kind of data. Request bodies carry data to the web server; response bodies carry data back to the client. Unlike the start lines and headers, which are textual and structured, the body can contain arbitrary binary data (e.g., images, videos, audio tracks, software applications). Of course, the body can also contain text.
 
-### TCP/IP
+#### TCP/IP
 
 HTTP is an application layer protocol. HTTP doesn't worry about the nitty-gritty details of network communication; instead, it leaves the details of networking to TCP/IP, the popular reliable Internet transport protocol. Once a TCP connection is established, messages exchanged between the client and server computers will never be lost, damaged, or received out of order. In networking terms, the HTTP protocol is layered over TCP. HTTP uses TCP to transport its message data. Likewise, TCP is layered over IP.
 
 Before an HTTP client can send a message to a server, it needs to establish a TCP/IP connection between the client and server using Internet protocol (IP) addresses and port numbers. In TCP, you need the IP address of the server computer and the TCP port number associated with the specific software program running on the server. Hostnames can easily be converted into IP addresses through a facility called the Domain Name Service (DNS). When the port number is missing from an HTTP URL, you can assume the default value of port 80.
 
-### Architectural Components of the Web
+#### Architectural Components of the Web
 
 There are many other web applications that you interact with on the Internet, besides web browsers and web servers. Here is an outline:
 
 - **Proxies** HTTP intermediaries that sit between clients and servers, receiving all of the client's HTTP requests and relaying the requests to the server (perhaps after modifying the requests). Proxy accesses the server on the user's behalf.
 - **Caches** A special type of HTTP proxy server that keeps copies of popular documents that pass through the proxy. The next client requesting the same document can be served from the cache's personal copy.
 - **Gateways** Special web servers that connect to other applications. They are often used to convert HTTP traffic to another protocol. For example, an HTTP/FTP gateway receives requests for FTP URIs via HTTP requests but fetches the documents using the FTP protocol. The resulting document is packed into an HTTP message and sent to the client.
-- **Tunnels** Tunnels are HTTP applications that, after setup, blindly relay raw data between two connections. HTTP tunnels are often used to transport non-HTTP data over one or more HTTP connections, without looking at the data. One popular use of HTTP tunnels is to carry encrypted Secure Sockets Layer (SSL) traffic through an HTTP connection, allowing SSL traffic through corporate fire- walls that permit only web traffic.
+- **Tunnels** Tunnels are HTTP applications that, after setup, blindly relay raw data between two connections. HTTP tunnels are often used to transport non-HTTP data over one or more HTTP connections, without looking at the data. One popular use of HTTP tunnels is to carry encrypted Secure Sockets Layer (SSL) traffic through an HTTP connection, allowing SSL traffic through corporate firewalls that permit only web traffic.
 - **Agents** User agents (or just agents) are client programs that make HTTP requests on the user's behalf. Any application that issues web requests is an HTTP agent.
