@@ -8,19 +8,11 @@ _These book notes were taken to further my own learning and for quick reference.
 
 ### Chapter 1: Overview of HTTP
 
-#### HTTP: The Internet's Multimedia Courier
-
 _HTTP_ is the common language between _web browsers_, _web servers_ and related _web applications_. HTTP moves data reliably from web servers to web browsers, without worry about the flaws of internet data transmission.
-
-#### Web Clients and Servers
 
 Web servers are also called _HTTP servers_ as they use HTTP protocol. They host web content: _web resources_. HTTP servers provide their content upon request. The client sends a HTTP request and servers retrieve a HTTP response.
 
-### Resources
-
 The simplest kind of web resource is static files stored in the web server's filesystem. These can be simple text files, _HTML_ files, _JPEG_ image files, _AVI_ movie files, or any other file. **Resources can also be software programs that generate content on demand**.
-
-### Media Types
 
 HTTP tags each data type being transported with a label called _MIME type_. A MIME type is a text label, represented by a primary object type and a specific subtype, separated by a slash. There are hundreds of popular MIME types, here are a few:
 
@@ -32,13 +24,11 @@ JPEG            | image/jpeg
 GIF             | image/gif
 QuickTime movie | video/quicktime
 
-### URI
+### URI, URL and URN
 
 A resource is uniquely identified and located by a _URI_ (_uniform resource identifier_). Given the URI, HTTP can retrieve the resource. URI come in two flavors, called URLs and URNs.
 
-#### URL
-
-The _uniform resource locator_ (URL) is the most common form or URI. URL describes the **specific location** of a resource on a particular server. URL speficies the **protocol**, **server**, and **local resource**. E.g:
+The **uniform resource locator** (URL) is the most common form or URI. URL describes the **specific location** of a resource on a particular server. URL speficies the **protocol**, **server**, and **local resource**. E.g:
 
 > http:// www.joes-hardware.com /specials/saw-blade.gif
 
@@ -52,8 +42,6 @@ Most URL follow a standardized format in three main parts:
 :-------------------- | :------------------------------ | ----------------------------------------------------
 http://               | www.joes-hardware.com           | /specials/saw-blade.gif
 
-#### URN
-
 The second flavor is _uniform resource name_ or URN. A URN is a unique name to identify a resource, independently of where the resource is located. URN allows the resource to move from place to place, and being accessed by multiple protocols while maintaining the same name. The "RFC 2141" URN is:
 
 > urn:ietf:rfc:2141
@@ -63,8 +51,6 @@ URNs are still experimental and not yet widely adopted. To work effectively, URN
 ### Transactions
 
 An HTTP transaction consists of a request command (sent from client to server), and a response result (sent from the server back to the client). This communication happens with formatted blocks of data called **HTTP messages**
-
-### Methods
 
 HTTP supports several different request commands, called **HTTP methods**. Every HTTP request message has a method. The method tells the server what action to perform.
 
@@ -76,8 +62,6 @@ DELETE      | Delete the named resource from a server.
 POST        | Send client data into a server gateway application.
 HEAD        | Send just the HTTP headers from the response for the named resource.
 
-### Status Codes
-
 Every HTTP response message comes back with a status code. The status code is a numeric code that tells the client if the request succeeded, or if other actions are required. Some common HTTP status codes:
 
 HTTP status code | Description
@@ -85,12 +69,6 @@ HTTP status code | Description
 200              | Ok. Document returned correctly.
 302              | Redirect. Go someplace else to get the resource.
 404              | Not found. Can't find this resource.
-
-### Web pages can consist of multiple objects.
-
-An application often issues multiple HTTP transactions to accomplish a task. For example, a web browser issues a cascade of HTTP transactions to fetch and display a graphics-rich web page. The browser performs one transaction to fetch the HTML "skeleton" that describes the page layout, then issues additional HTTP transactions for each embedded image, etc. These embedded resources might even reside on different servers.
-
-### Messages
 
 HTTP messages are simple, line-oriented sequences of characters. HTTP messages sent from web clients to web servers are called **request messages**. Messages from servers to clients are called **response messages**. _There are no other kinds of HTTP messages_.
 
@@ -121,8 +99,6 @@ HTTP messages consist of three parts:
 ### TCP/IP
 
 HTTP is an application layer protocol. HTTP doesn't worry about the nitty-gritty details of network communication; instead, it leaves the details of networking to TCP/IP, the popular reliable Internet transport protocol. Once a TCP connection is established, messages exchanged between the client and server computers will never be lost, damaged, or received out of order. In networking terms, the HTTP protocol is layered over TCP. HTTP uses TCP to transport its message data. Likewise, TCP is layered over IP.
-
-### Connections, IP Addresses, and Port Numbers
 
 Before an HTTP client can send a message to a server, it needs to establish a TCP/IP connection between the client and server using Internet protocol (IP) addresses and port numbers. In TCP, you need the IP address of the server computer and the TCP port number associated with the specific software program running on the server. Hostnames can easily be converted into IP addresses through a facility called the Domain Name Service (DNS). When the port number is missing from an HTTP URL, you can assume the default value of port 80.
 
