@@ -223,7 +223,7 @@ DELETE  | The DELETE method does just what you would think - it asks the server 
 
 Not all servers implement all seven of the methods. Furthermore, because HTTP was designed to be easily extensible, other servers may implement their own request methods in addition to these. These additional methods are called **_extension methods_**.
 
-Note that not all methods are implemented by every server. To be compli- ant with HTTP Version 1.1, a server need implement only the GET and HEAD meth- ods for its resources.
+Note that not all methods are implemented by every server. To be compliant with HTTP Version 1.1, a server need implement only the GET and HEAD methods for its resources.
 
 ### Status codes
 
@@ -262,3 +262,65 @@ In this example, the response message contains a Server header whose value is br
 ### Entity Bodies
 
 The third part of an HTTP message is the optional entity body. Entity bodies are the payload of HTTP messages. They are the things that HTTP was designed to transport. HTTP messages can carry many kinds of digital data: images, video, HTML documents, software applications, credit card transactions, electronic mail, and so on.
+
+## Chapter 4: Connection Management
+
+HTTP connections are mainly TCP connections, plus a few rules about how to use them. TCP gives HTTP a reliable bit pipe. Bytes stuffed in one side of a TCP connection come out the other side correctly, and in the right order. A secure variant, HTTPS, inserts a cryptographic encryption layer (called TLS or SSL) between HTTP and TCP.
+
+When given a URL, a browser performs the following steps:
+
+1. The browser extracts the hostname.
+2. The browser looks up the IP address for this hostname (DNS).
+3. The browser gets the port number (80).
+4. The browser makes a TCP connection to IP address port 80.
+5. The browser sends an HTTP GET request message to the server.
+6. The browser reads the HTTP response message from the server.
+7. The browser closes the connection.
+
+TCP sends its data in little chunks called IP packets (or IP datagrams). When HTTP wants to transmit a message, it streams the contents of the message data, in order, through an open TCP connection. TCP takes the stream of data, chops up the data stream into chunks called segments, and transports the segments across the Internet inside envelopes called IP packets. This is all handled by the TCP/IP software; **_the HTTP programmer sees none of it_**. Each TCP segment is carried by an IP packet from one IP address to another IP address.
+
+A computer might have several TCP connections open at any one time. TCP keeps all these connections straight through port numbers. A TCP connection is distinguished by four values:
+
+```
+<source-IP-address, source-port, destination-IP-address, destination-port>
+```
+
+Together, these four values **_uniquely define_** a connection.
+
+### TCP Sockets
+
+Operating systems provide different facilities for manipulating their TCP connections. **Sockets API**, the TCP programming interface firstly developed for the Unix operating system, hides all the details of TCP and IP from the HTTP programmer.
+
+The sockets API lets you create TCP endpoint data structures, connect these end- points to remote server TCP endpoints, and read and write data streams. The TCP API hides all the details of the underlying network protocol handshaking and the segmentation and reassembly of the TCP data stream to and from IP packets.
+
+Establishing a connection can take a while, depending on how far away the server is, the load on the server, and the congestion of the Internet. Once the connection is set up, the client sends the HTTP request and the server reads it. Once the server gets the entire request message, it processes the request, performs the requested action, and writes the data back to the client.
+
+Because HTTP is layered directly on TCP, the performance of HTTP transactions depends critically on the performance of the underlying TCP plumbing.
+
+### TCP Performance Considerations
+
+Delay                                      | Description
+:----------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TCP Connection Handshake                   | When you set up a new TCP connection, even before you send any data, the TCP software exchanges a series of IP packets to negotiate the terms of the connection.
+Delayed Acknowledgments                    | Internet itself does not guarantee reliable packet delivery. TCP implements its own acknowledgment scheme to guarantee successful data delivery.
+TCP Slow Start                             | TCP connections "tune" themselves over time, initially limiting the maximum speed of the connection and increasing the speed over time as data is transmitted successfully.
+Nagle's Algorithm                          | TCP sends large numbers of packets containing small amounts of data. Nagle's algorithm attempts to bundle up a large amount of TCP data before sending a packet, aiding network efficiency, but also causes several performance problems. E.g: messages, that don't fill a packet, may be delayed waiting for additional data that will never arrive.
+TIME_WAIT Accumulation and Port Exhaustion | When a TCP endpoint closes a TCP connection, it maintains in memory a small control block recording the IP addresses and port numbers of the recently closed connection. This information is maintained for a short time. In practice, this algorithm prevents two connections with the exact same IP addresses and port numbers from being created, closed, and recreated within two minutes. Each time the client connects to the server, it gets a new source port in order to have a unique connection. But because a limited number of source ports are available (say, 60,000) and no connection can be reused for short period of time (say, 120 seconds), this limits the connect rate.
+Serial Transaction Delays                  | If each transaction requires a new connection, the connection and slow-start delays can add up.
+
+### HTTP connection performance improvement techniques
+
+Name                    | Description
+:---------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Parallel connections    | HTTP allows clients to open multiple connections and perform multiple HTTP transactions in parallel. Even though parallel connections may be faster, however, they are not always faster, as this can cause significant server slowdown.
+Persistent connections  | By reusing an idle, persistent connection that is already open to the target server, you can avoid the slow connection setup. In addition, the already open connection can avoid the slow-start congestion adaptation phase, allowing faster data transfers delays.
+Pipelined connections   | Concurrent HTTP requests across a shared TCP connection. While the first request is streaming across the network to a server, a second and third requests can get underway. This can improve performance in high-latency network conditions, by reducing network round trips.
+Multiplexed connections | Interleaving chunks of requests and responses (experimental)
+
+### Connection close
+
+Any HTTP client, server, or proxy can close a TCP transport connection at any time.
+
+TCP connections are bidirectional. Each side of a TCP connection has an input queue and an output queue, for data being read or written. Data placed in the output of one side will eventually show up on the input of the other side.
+
+An application can close either or both of the TCP input and output channels. A close( ) sockets call closes both the input and output channels of a TCP connection. This is called a **full close**.
