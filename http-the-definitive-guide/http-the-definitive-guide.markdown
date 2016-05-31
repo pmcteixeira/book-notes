@@ -4,6 +4,10 @@ by David Gourley and Brian Totty.
 
 _These book notes were taken to further my own learning and for quick reference. If you enjoy these notes, please [purchase the book](http://www.amazon.com/HTTP-Definitive-Guide-Guides/dp/1565925092)!_
 
+## Part 1 Mind Map (Chapters 1-4)
+
+![Part 1 Mind Map (Chapters 1-4)](assets/part_1.png)
+
 ## Chapter 1: Overview of HTTP
 
 _HTTP_ is the common language between _web browsers_, _web servers_ and related _web applications_. HTTP moves data reliably from web servers to web browsers, without worry about the flaws of internet data transmission.
