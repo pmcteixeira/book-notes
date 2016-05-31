@@ -4,17 +4,17 @@ by David Gourley and Brian Totty.
 
 _These book notes were taken to further my own learning and for quick reference. If you enjoy these notes, please [purchase the book](http://www.amazon.com/HTTP-Definitive-Guide-Guides/dp/1565925092)!_
 
-## Part 1 Mind Map (Chapters 1-4)
+## Part 1 Mind Map (Chapters 1 - 4)
 
 ![Part 1 Mind Map (Chapters 1-4)](assets/part_1.png)
 
 ## Chapter 1: Overview of HTTP
 
-_HTTP_ is the common language between _web browsers_, _web servers_ and related _web applications_. HTTP moves data reliably from web servers to web browsers, without worry about the flaws of internet data transmission.
+_HTTP_ is the common language between _web browsers_, _web servers_ and related _web applications_.
 
-Web servers host web content, also referred as _web resources_. Web servers provide web content upon request. The client sends a HTTP request and servers retrieve a HTTP response.
+Web servers host web content, also referred as _web resources_. The simplest kind of web resources is static files stored in the web server's filesystem. They can be simple text files, HTML files, JPEG image files, AVI movie files, or any other file. _Resources can also be software programs that generate content on demand_.
 
-The simplest kind of web resources is static files stored in the web server's filesystem. They can be simple text files, _HTML_ files, _JPEG_ image files, _AVI_ movie files, or any other file. **Resources can also be software programs that generate content on demand**.
+HTTP moves web content reliably from web servers to web browsers, without worry about the flaws of internet data transmission. Web servers provide web content upon request. The client sends a **_HTTP request_** and servers retrieve a **_HTTP response_**.
 
 HTTP tags each data type being transferred with a label called _MIME type_. A MIME type is a text label, represented by a primary object type and a specific subtype, separated by a slash. There are hundreds of popular MIME types, here are a few:
 
@@ -28,7 +28,7 @@ QuickTime movie | video/quicktime
 
 ### URI, URL and URN
 
-A resource is uniquely identified and located by a _URI_ (_uniform resource identifier_). Given the URI, HTTP can retrieve the correspondent resource. URI come in two flavors, called URLs and URNs.
+A web resource is uniquely identified and located by a _URI_ (_uniform resource identifier_). Given the URI, HTTP can retrieve the correspondent resource. URI come in two flavors, called URLs and URNs.
 
 The **uniform resource locator** (URL) is the most common form or URI. URL describes the **specific location** of a resource on a particular server. Most URL follow a standardized format in three main parts:
 
@@ -94,7 +94,7 @@ HTTP messages consist of three parts:
 
 ### TCP/IP
 
-HTTP is an application layer protocol. HTTP doesn't worry about the nitty-gritty details of network communication; instead, it leaves the details of networking to TCP/IP, the popular reliable Internet transport protocol. Once a TCP connection is established, messages exchanged between the client and server computers will never be lost, damaged, or received out of order. In networking terms, the HTTP protocol is layered over TCP. HTTP uses TCP to transport its message data. Likewise, TCP is layered over IP.
+HTTP is the application layer protocol. HTTP doesn't worry about the nitty-gritty details of network communication; instead, it leaves the details of networking to TCP/IP, the popular reliable Internet transport protocol. Once a TCP connection is established, messages exchanged between the client and server computers will never be lost, damaged, or received out of order. In networking terms, the HTTP protocol is layered over TCP. HTTP uses TCP to transport its message data. Likewise, TCP is layered over IP.
 
 Before an HTTP client can send a message to a server, it needs to establish a TCP/IP connection between the client and server using Internet protocol (IP) addresses and port numbers. In TCP, you need the IP address of the server computer and the TCP port number associated with the specific software program running on the server. Hostnames can easily be converted into IP addresses through a facility called the Domain Name Service (DNS). When the port number is missing from an HTTP URL, you can assume the default value of port 80.
 
@@ -295,7 +295,7 @@ Together, these four values **_uniquely define_** a connection.
 
 Operating systems provide different facilities for manipulating their TCP connections. **Sockets API**, the TCP programming interface firstly developed for the Unix operating system, hides all the details of TCP and IP from the HTTP programmer.
 
-The sockets API lets you create TCP endpoint data structures, connect these end- points to remote server TCP endpoints, and read and write data streams. The TCP API hides all the details of the underlying network protocol handshaking and the segmentation and reassembly of the TCP data stream to and from IP packets.
+The sockets API lets you create TCP endpoint data structures, connect these endpoints to remote server TCP endpoints, and read and write data streams. The TCP API hides all the details of the underlying network protocol handshaking and the segmentation and reassembly of the TCP data stream to and from IP packets.
 
 Establishing a connection can take a while, depending on how far away the server is, the load on the server, and the congestion of the Internet. Once the connection is set up, the client sends the HTTP request and the server reads it. Once the server gets the entire request message, it processes the request, performs the requested action, and writes the data back to the client.
 
