@@ -328,3 +328,63 @@ Any HTTP client, server, or proxy can close a TCP transport connection at any ti
 TCP connections are bidirectional. Each side of a TCP connection has an input queue and an output queue, for data being read or written. Data placed in the output of one side will eventually show up on the input of the other side.
 
 An application can close either or both of the TCP input and output channels. A close( ) sockets call closes both the input and output channels of a TCP connection. This is called a **full close**.
+
+## Chapter 5: Web Servers
+
+![Chapter 5](assets/chapter_5.png)
+
+The term "web server" can refer either to web server software or to the particular device or computer dedicated to serving the web pages. The web server logic implements the HTTP protocol, manages web resources, and provides web server administrative capabilities. The web server logic shares responsibilities for managing TCP connections with the operating system.
+
+The underlying operating system manages the hardware details of the underlying computer system and provides TCP/IP network support, filesystems to hold web resources, and process management to control current computing activities. Web servers are available in many forms:
+
+- **General-Purpose Software Web Servers** General-purpose software web servers run on standard, network-enabled computer systems. You can choose open source software or commercial software Web server software is available for just about every computer and operating system.
+- **Web Server Appliances** Web server appliances are prepackaged software/hardware solutions.
+- **Embedded Web Servers** Embedded servers are tiny web servers intended to be embedded into consumer products (e.g., printers or home appliances). Embedded web servers allow users to administer their consumer devices using a convenient web browser interface.
+
+### What Real Web Servers Do
+
+#### 1\. Accept Client Connections.
+
+When a client requests a TCP connection to the web server, the web server establishes the connection and determines which client is on the other side of the connection, extracting the IP address from the TCP connection. Once a new connection is established and accepted, the server adds the new connection to its list of existing web server connections and prepares to watch for data on the connection. The web server is free to reject and immediately close any connection.
+
+#### 2\. Receiving Request Messages.
+
+As the data arrives on connections, the web server reads out the data from the network connection and parses out the pieces of the request message. Some web servers also store the request messages in internal data structures that make the message easy to manipulate. Web servers constantly watch for new web requests, because requests can arrive at any time. Different web server architectures to service requests: `Single-threaded web servers`, `Multiprocess and multithreaded web servers`, `Multiplexed I/O servers`, `Multiplexed multithreaded web servers`.
+
+#### 3\. Processing Requests.
+
+Once the web server has received a request, it can process the request using the method, resource, headers, and optional body.
+
+#### 4\. Mapping and Accessing Resources.
+
+Web servers are resource servers. They deliver pre-created content, such as HTML pages or JPEG images, as well as dynamic content from resource-generating applications running on the servers. Web servers support different kinds of resource mapping, but the simplest form of resource mapping uses the request URI to name a file in the web server's filesystem.
+
+Typically, a special folder in the web server filesystem is reserved for web content. This folder is called the document root, or `docroot`. The web server takes the URI from the request message and appends it to the document root. Another common use of docroots gives people private web sites on a web server. A typical convention maps URIs whose paths begin with a slash and tilde (/~) followed by a username to a private document root for that user. The private docroot is often the folder called public_html inside that user's home directory, but it can be configured differently.
+
+A web server can receive requests for directory URLs, where the path resolves to a directory, not a file. Most web servers can be configured to take a few different actions when a client requests a directory URL: _return an error_, _return a special, default, "index file" instead of the directory_, _Scan the directory, and return an HTML page containing the contents_.
+
+Web servers also can map URIs to dynamic resources--that is, to programs that generate content on demand. In fact, a whole class of web servers called application servers connect web servers to sophisticated backend applications. The web server needs to be able to tell when a resource is a dynamic resource, where the dynamic content generator program is located, and how to run the program.
+
+When a server receives a request for a URI with an executable path component, it attempts to execute a program in a corresponding server directory.
+
+Many web servers also provide support for **_server-side includes_ (SSI)**. If a resource is flagged as containing server-side includes, the server processes the resource contents before sending them to the client. The contents are scanned for certain special patterns (often contained inside special HTML comments), which can be variable names or embedded scripts. The special patterns are replaced with the values of variables or the output of executable scripts. This is an easy way to create dynamic content.
+
+#### 5\. Building Responses
+
+If the transaction generated a response body, the content is sent back with the response message. If there was a body, the response message usually contains:
+
+- A Content-Type header, describing the MIME type of the response body
+- A Content-Length header, describing the size of the response body
+- The actual message body content
+
+The web server is responsible for determining the **MIME** type of the response body.
+
+Web servers sometimes return redirection responses instead of success messages. A web server can redirect the browser to go elsewhere to perform the request. A redirection response is indicated by a 3XX return code. The Location response header contains a URI for the new or preferred location of the content. Redirects are useful for: _Permanently moved resources_, _Temporarily moved resources_, _URL augmentation_, _Load balancing_, _Server affinity_, _Canonicalizing directory names_.
+
+#### 6\. Sending Responses
+
+The server needs to keep track of the connection state and handle persistent connections with special care. For non persistent connections, the server is expected to close its side of the connection when the entire message is sent. For persistent connections, the connection may stay open, in which case the server needs to be extra cautious to compute the Content-Length header correctly, or the client will have no way of knowing when a response ends.
+
+#### 7\. Logging
+
+when a transaction is complete, the web server notes an entry into a log file, describing the transaction performed.
