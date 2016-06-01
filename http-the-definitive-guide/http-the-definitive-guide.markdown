@@ -6,13 +6,17 @@ _These book notes were taken to further my own learning and for quick reference.
 
 ## Mind Maps
 
-### Chapters 1 - 4)
+### Chapters 1 - 4
 
 ![Part 1 Mind Map (Chapters 1-4)](assets/part_1.png)
 
 ### Chapter 5
 
 ![Chapter 5](assets/chapter_5.png)
+
+### Chapter 6
+
+![Chapter 6](assets/chapter_6.png)
 
 ## Chapter 1: Overview of HTTP
 
