@@ -4,9 +4,15 @@ by David Gourley and Brian Totty.
 
 _These book notes were taken to further my own learning and for quick reference. If you enjoy these notes, please [purchase the book](http://www.amazon.com/HTTP-Definitive-Guide-Guides/dp/1565925092)!_
 
-## Part 1 Mind Map (Chapters 1 - 4)
+## Mind Maps
+
+### Chapters 1 - 4)
 
 ![Part 1 Mind Map (Chapters 1-4)](assets/part_1.png)
+
+### Chapter 5
+
+![Chapter 5](assets/chapter_5.png)
 
 ## Chapter 1: Overview of HTTP
 
@@ -331,8 +337,6 @@ An application can close either or both of the TCP input and output channels. A 
 
 ## Chapter 5: Web Servers
 
-![Chapter 5](assets/chapter_5.png)
-
 The term "web server" can refer either to web server software or to the particular device or computer dedicated to serving the web pages. The web server logic implements the HTTP protocol, manages web resources, and provides web server administrative capabilities. The web server logic shares responsibilities for managing TCP connections with the operating system.
 
 The underlying operating system manages the hardware details of the underlying computer system and provides TCP/IP network support, filesystems to hold web resources, and process management to control current computing activities. Web servers are available in many forms:
@@ -388,3 +392,84 @@ The server needs to keep track of the connection state and handle persistent con
 #### 7\. Logging
 
 when a transaction is complete, the web server notes an entry into a log file, describing the transaction performed.
+
+## Chapter 6: Proxies
+
+Web proxy servers are intermediaries. Proxies sit between clients and servers and act as "middlemen," shuffling HTTP messages back and forth between the parties. HTTP proxy servers are both web servers and web clients.
+
+### Proxies vs Gateways
+
+Strictly speaking, proxies connect two or more applications that speak the same protocol, while gateways hook up two or more parties that speak different protocols. A gateway acts as a "protocol converter," allowing a client to complete a transaction with a server, even when the client and server speak different protocols.
+
+In practice, the difference between proxies and gateways is blurry. Because browsers and servers implement different versions of HTTP, proxies often do some amount of protocol conversion. And commercial proxy servers implement gateway functionality to support SSL security protocols, SOCKS firewalls, FTP access, and web-based applications.
+
+### Why Use Proxies?
+
+#### Child filter
+
+Elementary schools use filtering proxies to block access to adult content, while providing unhindered access to educational sites.
+
+#### Document access controller
+
+Provides different clients with different permissions.
+
+#### Security firewall
+
+Network security engineers often use proxy servers to enhance security. Proxy servers restrict which application-level protocols flow in and out of an organization, at a single secure point in the network. They also can provide hooks to scrutinize that traffic (Figure 6-5), as used by virus-eliminating web and email proxies.
+
+#### Web cache
+
+Proxy caches maintain local copies of popular documents and serve them on demand, reducing slow and costly Internet communication.
+
+#### Surrogate
+
+Proxies can masquerade as web servers. These so-called surrogates or reverse proxies receive real web server requests, but, unlike web servers, they may initiate communication with other servers to locate the requested content on demand.
+
+#### Content router
+
+Content routers also can be used to implement various service-level offerings. For example, content routers can forward requests to nearby replica caches if the user or content provider has paid for higher performance (Figure 6-8), or route HTTP requests through filtering proxies if the user has signed up for a filtering service. Many interesting services can be constructed using adaptive content- routing proxies.
+
+#### Transcoder
+
+Proxy servers can modify the body format of content before delivering it to clients. This transparent translation between data representations is called transcoding. Transcoding proxies can convert GIF images into JPEG images as they fly by, to reduce size.
+
+#### Anonymizer
+
+Anonymizer proxies provide heightened privacy and anonymity, by actively removing identifying characteristics from HTTP messages (e.g., client IP address, From header, Referer header, cookies, URI session IDs).
+
+### Proxy Server Deployment
+
+You can place proxies in all kinds of places, depending on their intended uses. A few ways proxy servers can be deployed:
+
+#### Egress proxy
+
+You can stick proxies at the exit points of local networks to control the traffic flow between the local network and the greater Internet. You might use egress proxies in a corporation to offer firewall protection against malicious hackers outside the enterprise or to reduce bandwidth charges and improve performance of Internet traffic.
+
+#### Access (ingress) proxy
+
+Proxies are often placed at ISP access points, processing the aggregate requests from the customers. ISPs use caching proxies to store copies of popular documents, to improve the download speed for their users (especially those with high-speed connections) and reduce Internet bandwidth costs.
+
+#### Surrogates
+
+Proxies frequently are deployed as surrogates (also commonly called reverse proxies) at the edge of the network, in front of web servers, where they can field all of the requests directed at the web server and ask the web server for resources only when necessary.
+
+#### Network exchange proxy
+
+With sufficient horsepower, proxies can be placed in the Internet peering exchange points between networks, to alleviate congestion at Internet junctions through caching and to monitor traffic flows.
+
+### Proxy Hierarchies
+
+Proxies can be cascaded in chains called proxy hierarchies. However, hierarchies do not have to be static. A proxy server can forward messages to a varied and changing set of proxy servers and origin servers, based on many factors.
+
+Here are a few other examples of dynamic parent proxy selection:
+
+- Load balancing
+- Geographic proximity routing
+- Protocol/type routing
+- Subscription-based routing
+
+### How Proxies Get traffic
+
+Because clients normally talk directly to web servers, we need to explain how HTTP traffic finds its way to a proxy in the first place. There are four common ways to cause client traffic to get to a proxy:
+
+![Chapter 6 Proxy traffic.)](assets/chapter_6_proxy_traffic.png)
