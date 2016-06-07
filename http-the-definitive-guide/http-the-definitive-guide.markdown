@@ -554,3 +554,52 @@ Just because a cached document has expired doesn't mean it is actually different
 
 - If revalidation shows the content has changed, the cache gets a new copy of the document, stores it in place of the old data, and sends the document to the client.
 - If revalidation shows the content has not changed, the cache only gets new headers, including a new expiration date, and updates the headers in the cache.
+
+## Chapter 8: Integration Points: Gateways, Tunnels, and Relays
+
+### Gateways
+
+A gateway is the glue between resources and applications. An application can ask (through HTTP or some other defined interface) a gateway to handle the request, and the gateway can provide a response. The gateway can speak the query language to the database or generate the dynamic content, acting like a portal: a request goes in, and a response comes out.
+
+#### Client-Side and Server-Side Gateways
+
+Web gateways speak HTTP on one side and a different protocol on the other side. Gateways are described by their client- and server-side protocols, separated by a slash:
+
+```
+ <client-protocol>/<server-protocol>
+```
+
+We use the terms "server-side gateway" and "client-side gateway" to describe what side of the gateway the conversion is done for:
+
+- Server-side gateways speak HTTP with clients and a foreign protocol with servers (HTTP/*).
+- Client-side gateways speak foreign protocols with clients and HTTP with servers (*/HTTP).
+
+##### HTTPS/HTTP: Client-Side Security Accelerator Gateways
+
+These HTTPS/HTTP gateways sit in front of the web server, usually as an invisible intercepting gateway or a reverse proxy. They receive secure HTTPS traffic, decrypt the secure traffic, and make normal HTTP requests to the web server.
+
+These gateways often include special decryption hardware to decrypt secure traffic much more efficiently than the origin server, removing load from the origin server. Because these gateways send unencrypted traffic between the gateway and origin server, you need to use caution to make sure the network between the gateway and origin server is secure.
+
+#### Resource Gateways
+
+The most common form of gateway, the application server, combines the destination server and gateway into a single server. Application servers are server-side gateways that speak HTTP with the client and connect to an application program on the server side.
+
+The first popular API for application gateways was the **_Common Gateway Interface_** (CGI). CGI is a standardized set of interfaces that web servers use to launch programs in response to HTTP requests for special URLs, collect the program output, and send it back in HTTP responses.
+
+The Common Gateway Interface was the first and probably still is the most widely used server extension. It is used throughout the Web for things like dynamic HTML, credit card processing, and querying databases.
+
+#### Application Interfaces and Web Services
+
+One of the trickier issues in wiring up applications is negotiating the protocol interface between the two applications so that they can exchange data, often this is done on an application-by-application basis.
+
+The Internet community has developed a set of standards and protocols that allow web applications to talk to each other. These standards are loosely referred to **_as web services_**.
+
+Web services are built on standard web technologies, such as HTTP. Web services exchange information using XML over SOAP. The Extensible Markup Language (XML) provides a way to create and interpret customized information about a data object. The Simple Object Access Protocol (SOAP) is a standard for adding XML information to HTTP messages.
+
+### Tunnels
+
+Web tunnels enable access to applications that speak non-HTTP protocols through HTTP applications. Web tunnels let you send non-HTTP traffic through HTTP connections, allowing other protocols to piggyback on top of HTTP. The most common reason to use web tunnels is to embed non-HTTP traffic inside an HTTP connection, so it can be sent through firewalls that allow only web traffic.
+
+### Relays
+
+HTTP relays are simple HTTP proxies that do not fully adhere to the HTTP specifications. Relays process enough HTTP to establish connections, then blindly forward bytes.
