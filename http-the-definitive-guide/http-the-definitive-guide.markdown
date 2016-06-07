@@ -18,6 +18,10 @@ _These book notes were taken to further my own learning and for quick reference.
 
 ![Chapter 6](assets/chapter_6.png)
 
+### Chapter 7
+
+![Chapter 6](assets/chapter_7.png)
+
 ## Chapter 1: Overview of HTTP
 
 _HTTP_ is the common language between _web browsers_, _web servers_ and related _web applications_.
