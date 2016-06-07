@@ -477,3 +477,76 @@ Here are a few other examples of dynamic parent proxy selection:
 Because clients normally talk directly to web servers, we need to explain how HTTP traffic finds its way to a proxy in the first place. There are four common ways to cause client traffic to get to a proxy:
 
 ![Chapter 6 Proxy traffic.)](assets/chapter_6_proxy_traffic.png)
+
+## Chapter 7: Caching
+
+Web caches are HTTP devices that automatically keep copies of popular documents. When a web request arrives at a cache, if a local "cached" copy is available, the document is served from the local storage instead of from the origin server.
+
+A cache doesn't store a copy of every document in the world. Some requests that arrive at a cache can be served from an available copy. This is called a **_cache hit_**. Other requests arrive at a cache only to be forwarded to the origin server, because no copy is available. This is called a **_cache miss_**.
+
+Because the origin server content can change, caches have to check every now and then that their copies are still up-to-date with the server. These "freshness checks" are called HTTP **_revalidations_**. To make revalidations efficient, HTTP defines special requests that can quickly check if content is still fresh, without fetching the entire object from the server.
+
+A cache can revalidate a copy any time it wants, and as often as it wants. But because caches often contain millions of documents, and because network bandwidth is scarce, most caches revalidate a copy only when it is requested by a client and when the copy is old enough to warrant a check.
+
+When a cache needs to revalidate a cached copy, it sends a small revalidation request to the origin server. If the content hasn't changed, the server responds with a tiny _304 Not Modified_ response. As soon as the cache learns the copy is still valid, it marks the copy temporarily fresh again and serves the copy to the client. This is called a **_revalidate hit_** or a **_slow hit_**. It's slower than a pure cache hit, because it does need to check with the origin server, but it's faster than a cache miss, because no object data is retrieved from the server.
+
+HTTP gives us a few tools to revalidate cached objects, but the most popular is the _If-Modified-Since_ header. When added to a GET request, this header tells the server to send the object only if it has been modified since the time the copy was cached.
+
+### Hit Rate
+
+The fraction of requests that are served from cache is called the **_cache hit rate_** (or cache hit ratio), or sometimes the **_document hit rate_** (or document hit ratio). The hit rate ranges from 0 to 1 but is often described as a percentage, where 0% means that every request was a miss (had to get the document across the network), and 100% means every request was a hit (had a copy in the cache). Cache administrators would like the cache hit rate to approach 100%.
+
+### Byte Hit Rate
+
+Some large objects might be accessed less often but contribute more to overall data traffic, because of their size. For this reason, some people prefer the byte hit rate metric. The byte hit rate represents the fraction of all bytes transferred that were served from cache. Document hit rate and byte hit rate are both useful gauges of cache performance.
+
+### Distinguishing Hits and Misses
+
+Unfortunately, HTTP provides no way for a client to tell if a response was a cache hit or an origin server access. In both cases, the response code will be 200 OK, indicating that the response has a body.
+
+### Cache Topologies
+
+Caches can be dedicated to a single user or shared between thousands of users. Dedicated caches are called **_private caches_**. Private caches are personal caches, containing popular pages for a single user. Shared caches are called **_public caches_**.
+
+#### Private Caches
+
+Private caches don't need much horsepower or storage space, so they can be made small and cheap. Web browsers have private caches built right in, most browsers cache popular documents in the disk and memory of your personal computer.
+
+#### Public Proxy Caches
+
+Public caches are special, shared proxy servers called caching proxy servers or, more commonly, **_proxy caches_**. Proxy caches serve documents from the local cache or contact the server on the user's behalf. Because a public cache receives accesses from multiple users, it has more opportunity to eliminate redundant traffic.
+
+#### Proxy Cache Hierarchies
+
+In practice, it often makes sense to deploy hierarchies of caches, where cache misses in smaller caches are funneled to larger parent caches that service the leftover "distilled" traffic.
+
+#### Cache Meshes, Content Routing, and Peering
+
+Some network architects build complex **_cache meshes_** instead of simple cache hierarchies. Proxy caches in cache meshes talk to each other in more sophisticated ways, and make dynamic cache communication decisions, deciding which parent caches to talk to, or deciding to bypass caches entirely and direct themselves to the origin server. Such proxy caches can be described as **_content routers_**, because they make routing decisions about how to access, manage, and deliver content.
+
+These more complex relationships between caches allow different organizations to **_peer_** with each other, connecting their caches for mutual benefit. Caches that provide selective peering support are called **_sibling caches_**.
+
+### Cache Processing Steps
+
+1. **_Receiving_**: Cache reads the arriving request message from the network.
+2. **_Parsing_**: Cache parses the message, extracting the URL and headers.
+3. **_Lookup_**: Cache checks if a local copy is available and, if not, fetches a copy (and stores it locally).
+4. **_Freshness check_**: Cache checks if cached copy is fresh enough and, if not, asks server for any updates.
+5. **_Response creation_**: Cache makes a response message with the new headers and cached body.
+6. **_Sending_**: Cache sends the response back to the client over the network.
+7. **_Logging_**: Optionally, cache creates a log file entry describing the transaction.
+
+### Keeping Copies Fresh
+
+HTTP includes simple mechanisms to keep cached data sufficiently consistent with servers, without requiring servers to remember which caches have copies of their documents. HTTP calls these simple mechanisms **_document expiration_** and **_server revalidation_**.
+
+#### Document Expiration
+
+HTTP lets an origin server attach an "expiration date" to each document, using special HTTP Cache-Control and Expires headers. Like an expiration date on a quart of milk, these headers dictate how long content should be viewed as fresh.
+
+#### Server revalidation
+
+Just because a cached document has expired doesn't mean it is actually different from what's living on the origin server; it just means that it's time to check. This is called "server revalidation," meaning the cache needs to ask the origin server whether the document has changed:
+
+- If revalidation shows the content has changed, the cache gets a new copy of the document, stores it in place of the old data, and sends the document to the client.
+- If revalidation shows the content has not changed, the cache only gets new headers, including a new expiration date, and updates the headers in the cache.
