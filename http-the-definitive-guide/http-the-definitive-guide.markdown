@@ -603,3 +603,15 @@ Web tunnels enable access to applications that speak non-HTTP protocols through 
 ### Relays
 
 HTTP relays are simple HTTP proxies that do not fully adhere to the HTTP specifications. Relays process enough HTTP to establish connections, then blindly forward bytes.
+
+## Chapter 9: Web Robots
+
+Web robots are software programs that automate a series of web transactions with- out human interaction. Many robots wander from web site to web site, fetching con- tent, following hyperlinks, and processing the data they find. These kinds of robots are given colorful names such as "crawlers," "spiders," "worms," and "bots" because of the way they automatically explore web sites, seemingly with minds of their own.
+
+### Crawlers and Crawling
+
+Web crawlers are robots that recursively traverse information webs, fetching first one web page, then all the web pages to which that page points, then all the web pages to which those pages point, and so on.
+
+### Robotic HTTP
+
+Robots are no different from any other HTTP client program. They too need to abide by the rules of the HTTP specification. A robot that is making HTTP requests and advertising itself as an HTTP/1.1 client needs to use the appropriate HTTP request headers.
