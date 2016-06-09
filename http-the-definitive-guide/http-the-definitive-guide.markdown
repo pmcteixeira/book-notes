@@ -20,7 +20,11 @@ _These book notes were taken to further my own learning and for quick reference.
 
 ### Chapter 7
 
-![Chapter 6](assets/chapter_7.png)
+![Chapter 7](assets/chapter_7.png)
+
+### Chapter 11
+
+![Chapter 6](assets/chapter_11.png)
 
 ## Chapter 1: Overview of HTTP
 
