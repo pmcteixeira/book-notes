@@ -615,3 +615,158 @@ Web crawlers are robots that recursively traverse information webs, fetching fir
 ### Robotic HTTP
 
 Robots are no different from any other HTTP client program. They too need to abide by the rules of the HTTP specification. A robot that is making HTTP requests and advertising itself as an HTTP/1.1 client needs to use the appropriate HTTP request headers.
+
+## Chapter 10: HTTP-NG
+
+No notes.
+
+## Chapter 11: Client Identification and Cookies
+
+HTTP began its life as an anonymous, stateless, request/response protocol. Modern web sites want to know more about users on the other ends of the connections and be able to keep track of those users as they browse. HTTP itself was not born with a rich set of identification features. Mechanisms to identify users:
+
+### HTTP Headers
+
+Seven HTTP request headers that most commonly carry information about the user:
+
+Header name     | Header type | Description
+:-------------- | :---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+From            | Request     | User's email address. Ideally, this would be a viable source of user identification, because each user would have a different email address. However, few browsers send From headers, due to worries of unscrupulous servers collecting email addresses and using them for junk mail distribution.
+User-Agent      | Request     | The User-Agent header tells the server information about the browser the user is using, including the name and version of the program, and often information about the operating system. This sometimes is useful for customizing content to interoperate well with particular browsers and their attributes, but that doesn't do much to help identify the particular user in any meaningful way.
+Referer         | Request     | The Referer header provides the URL of the page the user is coming from. The Referer header alone does not directly identify the user, but it does tell what page the user previously visited. You can use this to better understand user browsing behavior and user interests.
+Authorization   | Request     | Username and password. If a server wants a user to register before providing access to the site, it can send back an HTTP 401 Login Required response code to the browser, and adds the WWW-Authenticate header. Once the user enters a username and a password the browser repeats the original request. This time it adds an Authorization header, specifying the username and password. The username and password are scrambled, to hide them from casual or accidental network observers. HTTP basic authentication username and password can easily be unscrambled by anyone who wants to go through a minimal effort. For future requests, the browser will automatically issue the stored username and password when asked and will often even send it to the site when not asked. This makes it possible to log in once to a site and have your identity maintained through the session, by having the browser send the Authorization header as a token of your identity on each request to the server.
+Client-ip       | Extension   | Client's IP address
+X-Forwarded-For | Extension   | Client's IP address
+Cookie          | Extension   | Server-generated ID label
+
+### Fat URLs
+
+Some web sites keep track of user identity by generating special versions of each URL for each user. Typically, a real URL is extended by adding some state information to the start or end of the URL path. As the user browses the site, the web server dynamically generates hyperlinks that continue to maintain the state information in the URLs. URLs modified to include user state information are called fat URLs.
+
+### Cookies
+
+You can classify cookies broadly into two types: **_session cookies_** and **_persistent cookies_**. A session cookie is a temporary cookie that keeps track of settings and preferences as a user navigates a site. A session cookie is deleted when the user exits the browser. Persistent cookies can live longer; they are stored on disk and survive browser exits and computer restarts. Persistent cookies often are used to retain a configuration profile or login name for a site that a user visits periodically.
+
+The only difference between session cookies and persistent cookies is when they expire. A cookie is a session cookie if its Discard parameter is set, or if there is no Expires or Max-Age parameter indicating an extended expiration time.
+
+#### How Cookies Work
+
+Cookies are like "Hello, My Name Is" stickers stuck onto users by servers. When a user visits a web site, the web site can read all the stickers attached to the user by that server.
+
+The first time the user visits a web site, the web server doesn't know anything about the user. The web server expects that this same user will return again, so it wants to "slap" a unique cookie onto the user so it can identify this user in the future. The cookie contains an arbitrary list of name=value information, and it is attached to the user using the Set-Cookie or Set-Cookie2 HTTP response (extension) headers.
+
+Cookies can contain any information, but they often contain just a unique identification number, generated by the server for tracking purposes. For example, the server slaps onto the user a cookie that says id="34294". The server can use this number to look up database information that the server accumulates for its visitors (purchase history, address information, etc.).
+
+However, cookies are not restricted to just ID numbers. Many web servers choose to keep information directly in the cookies. For example:
+
+```
+Cookie: name="Brian Totty"; phone="555-1212"
+```
+
+The browser remembers the cookie contents sent back from the server in Set-Cookie or Set-Cookie2 headers, storing the set of cookies in a browser cookie database. When the user returns to the same site in the future, the browser will select those cookies slapped onto the user by that server and pass them back in a Cookie request header.
+
+#### Cookie Jar: Client-Side State
+
+The basic idea of cookies is to let the browser accumulate a set of server-specific information, and provide this information back to the server each time you visit.
+
+Because the browser is responsible for storing the cookie information, this system is called client-side state. The official name for the cookie specification is the HTTP State Management Mechanism.
+
+#### Different Cookies for Different Sites
+
+A browser can have hundreds or thousands of cookies in its internal cookie jar, but browsers don't send every cookie to every site. In fact, they typically send only two or three cookies to each site. Here's why:
+
+- Moving all those cookie bytes would dramatically slow performance. Browsers would actually be moving more cookie bytes than real content bytes!
+- Most of these cookies would just be unrecognizable gibberish for most sites, because they contain server-specific name/value pairs.
+- Sending all cookies to all sites would create a potential privacy concern, with sites you don't trust getting information you intended only for another site.
+
+##### Cookie Domain attribute
+
+A server generating a cookie can control which sites get to see that cookie by adding a Domain attribute to the Set-Cookie response header. For example, the following HTTP response header tells the browser to send the cookie user="mary17" to any site in the domain .airtravelbargains.com:
+
+```
+Set-cookie: user="mary17"; domain="airtravelbargains.com"
+```
+
+If the user visits www.airtravelbargains.com, specials.airtravelbargains.com, or any site ending in .airtravelbargains.com, the following Cookie header will be issued:
+
+```
+Cookie: user="mary17"
+```
+
+##### Cookie Path attribute
+
+The cookie specification even lets you associate cookies with portions of web sites. This is done using the Path attribute, which indicates the URL path prefix where each cookie is valid. For example, one web server might be shared between two organizations, each having separate cookies. The site www.airtravelbargains.com might devote part of its web site to auto rentals--say, [http://www.airtravelbargains.com/autos/--using](http://www.airtravelbargains.com/autos/—using) a separate cookie to keep track of a user's preferred car size. A special auto-rental cookie might be generated like this:
+
+```
+Set-cookie: pref=compact; domain="airtravelbargains.com"; path=/autos/
+```
+
+If the user goes to <http://www.airtravelbargains.com/specials.html>, she will get only this cookie:
+
+```
+Cookie: user="mary17"
+```
+
+But if she goes to <http://www.airtravelbargains.com/autos/cheapo/index.html>, she will get both of these cookies:
+
+```
+Cookie: user="mary17"
+Cookie: pref=compact
+```
+
+So, cookies are pieces of state, slapped onto the client by the servers, maintained by the clients, and sent back to only those sites that are appropriate.
+
+#### Cookie Ingredients
+
+There are two different versions of cookie specifications in use: Version 0 cookies (sometimes called "Netscape cookies"), and Version 1 ("RFC 2965") cookies. Version 1 cookies are a less widely used extension of Version 0 cookies.
+
+Neither the Version 0 or Version 1 cookie specification is documented as part of the HTTP/1.1 specification. There are two primary adjunct documents that best describe the use of cookies.
+
+##### Version 0 (Netscape) Cookies
+
+The initial cookie specification was defined by Netscape. These "Version 0" cookies defined the Set-Cookie response header, the Cookie request header, and the fields available for controlling cookies. Version 0 cookies look like this:
+
+```
+Set-Cookie: name=value [; expires=date] [; path=path] [; domain=domain] [; secure]
+
+Cookie: name1=value1 [; name2=value2] ...
+```
+
+##### Version 1 (RFC 2965) Cookies
+
+An extended version of cookies is defined in RFC 2965 (previously RFC 2109). This Version 1 standard introduces the Set-Cookie2 and Cookie2 headers, but it also interoperates with the Version 0 system.
+
+The major changes of RFC 2965 cookies are:
+
+- Associate descriptive text with each cookie to explain its purpose
+- Support forced destruction of cookies on browser exit, regardless of expiration
+- Max-Age aging of cookies in relative seconds, instead of absolute dates
+- Ability to control cookies by the URL port number, not just domain and path
+- The Cookie header carries back the domain, port, and path filters (if any)
+- Version number for interoperability
+- $ prefix in Cookie header to distinguish additional keywords from usernames
+
+For example, assume the client has received these five Set-Cookie2 responses in the past from the www.joes-hardware.com web site:
+
+```
+Set-Cookie2: ID="29046"; Domain=".joes-hardware.com"
+Set-Cookie2: color=blue
+Set-Cookie2: support-pref="L2"; Domain="customer-care.joes-hardware.com"
+Set-Cookie2: Coupon="hammer027"; Version="1"; Path="/tools"
+Set-Cookie2: Coupon="handvac103"; Version="1"; Path="/tools/cordless"
+```
+
+If the client makes another request for path /tools/cordless/specials.html, it will pass along a long Cookie2 header like this:
+
+```
+Cookie: $Version="1";
+        ID="29046"; $Domain=".joes-hardware.com";
+        color="blue";
+        Coupon="hammer027"; $Path="/tools";
+        Coupon="handvac103"; $Path="/tools/cordless"
+```
+
+#### Cookies, Security, and Privacy
+
+The biggest misuse comes from third-party web sites using persistent cookies to track users. This practice, combined with IP addresses and information from the Referer header, has enabled these marketing companies to build fairly accurate user profiles and browsing patterns.
+
+In spite of all the negative publicity, the conventional wisdom is that the session handling and transactional convenience of cookies outweighs most risks, if you use caution about who you provide personal information to and review sites' privacy policies.
