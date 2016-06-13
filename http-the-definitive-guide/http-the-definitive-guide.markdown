@@ -774,3 +774,653 @@ Cookie: $Version="1";
 The biggest misuse comes from third-party web sites using persistent cookies to track users. This practice, combined with IP addresses and information from the Referer header, has enabled these marketing companies to build fairly accurate user profiles and browsing patterns.
 
 In spite of all the negative publicity, the conventional wisdom is that the session handling and transactional convenience of cookies outweighs most risks, if you use caution about who you provide personal information to and review sites' privacy policies.
+
+## Chapter 12: Basic Authentication
+
+HTTP provides a native challenge/response framework to make it easy to authenticate users.
+
+Whenever a web application receives an HTTP request message, instead of acting on the request, the server can respond with an "authentication challenge," challenging the user to demonstrate who she is by providing some secret information. The user needs to attach the secret credentials (username and password) when she repeats the request. If the credentials don't match, the server can challenge the client again or generate an error. If the credentials do match, the request completes normally.
+
+HTTP defines two official authentication protocols: basic authentication and digest authentication.
+
+Phase             | Headers             | Description                                                                                                                                                                                                                                                                                                                                                                                         | Method/Status
+:---------------- | :------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------
+Request Challenge | WWW-Authenticate    | The first request has no authentication. The server rejects the request with a 401 status, indicating that the user needs to provide his username and password. Because the server might have different areas, each with its own password, the server describes the protection area in the WWW-Authenticate header. Also, the authentication algorithm is specified in the WWW-Authenticate header. | GET / 401 Unauthorized
+Authorization     | Authorization       | The client retries the request, but this time attaching an Authorization header specifying the authentication algo- rithm, username, and password.                                                                                                                                                                                                                                                  | GET
+Success           | Authentication-Info | If the authorization credentials are correct, the server returns the document. Some authorization algorithms return some additional information about the authorization session in the optional Authentication-Info header.                                                                                                                                                                         | 200 OK
+
+### Security Realms
+
+Before we discuss the details of basic authentication, we need to explain how HTTP allows servers to associate different access rights to different resources. WWW-Authenticate challenge included a realm directive. Web servers group protected documents into **_security realms_**. Each security realm can have different sets of authorized users.
+
+For example, suppose a web server has two security realms established: one for corporate financial information and another for personal family documents. Different users will have different access to the realms. The CEO of your company probably should have access to the sales forecast, but you might not give her access to your family vacation photos!
+
+Here's a hypothetical basic authentication challenge, with a realm specified:
+
+```
+HTTP/1.0 401 Unauthorized
+WWW-Authenticate: Basic realm="Corporate Financials"
+```
+
+A realm should have a descriptive string name, like "Corporate Financials," to help the user understand which username and password to use.
+
+### Basic Authentication
+
+In basic authentication, a web server can refuse a transaction, challenging the client for a valid username and password. The server initiates the authentication challenge by returning a 401 status code instead of 200 and specifies the security realm being accessed with the WWW-Authenticate response header. When the browser receives the challenge, it opens a dialog box requesting the username and password for this realm. The username and password are sent back to the server in a slightly scrambled format inside an Authorization request header.
+
+The HTTP basic authentication WWW-Authenticate and Authorization headers summarized:
+
+Challenge/Response           | Header syntax and description
+:--------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Challenge (server to client) | There may be different passwords for different parts of the site. The realm is a quoted string that names the set of documents being requested, so the user knows which password to use. `WWW-Authenticate: Basic realm=quoted-realm`                                                                                                                                   |
+Response (client to server)  | The username and password are joined together by a colon (:) and then converted to base-64 encoding, making it a bit easier to include international characters in usernames and passwords and making it less likely that a cursory examination will yield usernames and passwords while watching network traffic. `Authorization: Basic base64-username-and-password`.
+
+### Base-64 Username/Password Encoding
+
+HTTP basic authentication packs the username and password together (separated by a colon), and encodes them using the base-64 encoding method.
+
+Base-64 encoding was invented to take strings of binary, text, and international character data (which caused problems on some systems) and convert them temporarily into a portable alphabet for transmission. The original strings could then be decoded on the remote end without fear of transmission corruption.
+
+Base-64 encoding can be useful for usernames and passwords that contain international characters or other characters that are illegal in HTTP headers (such as quotation marks, colons, and carriage returns). Also, because base-64 encoding trivially scrambles the username and password, it can help prevent administrators from accidentally viewing usernames and passwords while administering servers and networks.
+
+### Proxy Authentication
+
+The steps involved in proxy authentication are identical to that of web server identification. However, the headers and status codes are different.
+
+Web server versus proxy authentication:
+
+Web server                    | Proxy server
+:---------------------------- | :----------------------------
+Unauthorized status code: 401 | Unauthorized status code: 407
+WWW-Authenticate              | Proxy-Authenticate
+Authorization                 | Proxy-Authorization
+Authentication-Info           | Proxy-Authentication-Info
+
+### The Security Flaws of Basic Authentication
+
+Basic authentication is simple and convenient, but it is not secure. It should only be used to prevent unintentional access from nonmalicious parties or used in combination with an encryption technology such as SSL.
+
+Consider the following security flaws:
+
+1. Basic authentication sends the username and password across the network in a form that can trivially be decoded. In effect, the secret password is sent in the clear, for anyone to read and capture. Base-64 encoding obscures the username and password, making it less likely that friendly parties will glean passwords by accidental network observation. However, given a base 64–encoded username and password, the decoding can be performed trivially by reversing the encoding process. Decoding can even be done in seconds, by hand, with pencil and paper! Base 64–encoded passwords are effectively sent "in the clear." Assume that motivated third parties will intercept usernames and passwords sent by basic authentication. If this is a concern, send all your HTTP transactions over SSL encrypted channels, or use a more secure authentication protocol, such as digest authentication.
+2. Even if the secret password were encoded in a scheme that was more complicated to decode, a third party could still capture the garbled username and pass- word and replay the garbled information to origin servers over and over again to gain access. No effort is made to prevent these replay attacks.
+3. Even if basic authentication is used for noncritical applications, such as corpo- rate intranet access control or personalized content, social behavior makes this dangerous. Many users, overwhelmed by a multitude of password-protected services, share usernames and passwords. A clever, malicious party may capture a username and password in the clear from a free Internet email site, for example, and find that the same username and password allow access to critical online banking sites!
+4. Basic authentication offers no protection against proxies or intermediaries that act as middlemen, leaving authentication headers intact but modifying the rest of the message to dramatically change the nature of the transaction.
+5. Basic authentication is vulnerable to spoofing by counterfeit servers. If a user can be led to believe that he is connecting to a valid host protected by basic authentication when, in fact, he is connecting to a hostile server or gateway, the attacker can request a password, store it for later use, and feign an error.
+
+Basic authentication can be made secure by combining it with encrypted data transmission (such as SSL) to conceal the username and password from malicious individuals. This is a common technique.
+
+## Chapter 13: Digest Authentication
+
+Digest authentication is an alternate HTTP authentication protocol that tries to fix the most serious flaws of basic authentication. In particular, digest authentication:
+
+- Never sends secret passwords across the network in the clear
+- Prevents unscrupulous individuals from capturing and replaying authentication handshakes
+
+### Using Digests to Keep Passwords Secret
+
+The motto of digest authentication is "never send the password across the network." Instead of sending the password, the client sends a "fingerprint" or "digest" of the password, which is an irreversible scrambling of the password. The client and the server both know the secret password, so the server can verify that the digest pro- vided a correct match for the password. Given only the digest, a bad guy has no easy way to find what password it came from, other than going through every password in the universe, trying each one!
+
+### One-Way Digests
+
+One popular digest function, MD5, converts any arbitrary sequence of bytes, of any length, into a 128-bit digest.
+
+### Using Nonces to Prevent Replays
+
+One-way digests save us from having to send passwords in the clear. We can just send a digest of the password instead, and rest assured that no malicious party can easily decode the original password from the digest.
+
+Unfortunately, obscured passwords alone do not save us from danger, because a bad guy can capture the digest and replay it over and over again to the server, even though the bad guy doesn't know the password. The digest is just as good as the password.
+
+To prevent such replay attacks, the server can pass along to the client a special token called a nonce, which changes frequently (perhaps every millisecond, or for every authentication). The client appends this nonce token to the password before computing the digest.
+
+Mixing the nonce in with the password causes the digest to change each time the nonce changes. This prevents replay attacks, because the recorded password digest is valid only for a particular nonce value, and without the secret password, the attacker cannot compute the correct digest.
+
+Digest authentication requires the use of nonces, because a trivial replay weakness would make unnonced digest authentication effectively as weak as basic authentication. Nonces are passed from server to client in the WWW-Authenticate challenge.
+
+## Chapter 14: Secure HTTP
+
+When using HTTPS, all the HTTP request and response data is encrypted before being sent across the network. HTTPS works by providing a transport-level crypto- graphic security layer--using either the Secure Sockets Layer (SSL) or its successor, Transport Layer Security (TLS)--underneath HTTP.
+
+Because most of the hard encoding and decoding work happens in the SSL libraries, web clients and servers don't need to change much of their protocol processing logic to use secure HTTP. For the most part, they simply need to replace TCP input/out- put calls with SSL calls and add a few other calls to configure and manage the security information.
+
+### Digital Cryptography
+
+Concept                      | Description
+:--------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Ciphers                      | Algorithms for encoding text to make it unreadable to voyeurs
+Keys                         | Numeric parameters that change the behavior of ciphers. You needed to enter the right key into the cipher machine to get the decoding process to work correctly. Cipher keys make a single cipher machine act like a set of many virtual cipher machines, each of which behaves differently because they have different key values.
+Symmetric-key cryptosystems  | Algorithms that use the same key for encoding and decoding
+Asymmetric-key cryptosystems | Algorithms that use different keys for encoding and decoding
+Public-key cryptography      | Instead of a single encoding/decoding key for every pair of hosts, public-key cryptography uses two asymmetric keys: one for encoding messages for a host, and another for decoding the host's messages. The encoding key is publicly known to the world (thus the name public-key cryptography), but only the host knows the private decoding key. This makes key establishment much easier, because every- one can find the public key for a particular host. But the decoding key is kept secret, so only the recipient can decode messages sent to it.
+Digital signatures           | Checksums that verify that a message has not been forged or tampered with. Signatures Are Cryptographic Checksums. Signatures prove the author wrote the message. Because only the author has the author's top-secret private key, only the author can compute these checksums. The checksum acts as a personal "signature" from the author.
+Digital certificates         | Identifying information, verified and signed by a trusted organization
+
+### HTTPS: The Details
+
+HTTPS combines the HTTP protocol with a powerful set of symmetric, asymmetric, and certificate-based cryptographic techniques.
+
+#### HTTPS Overview
+
+HTTPS is just HTTP sent over a secure transport layer. Instead of sending HTTP messages unencrypted to TCP and across the world-wide Internet. HTTPS sends the HTTP messages first to a security layer that encrypts them before sending them to TCP. Today, the HTTP security layer is implemented by SSL and its modern replacement, TLS.
+
+#### HTTPS Schemes
+
+Today, secure HTTP is optional. Thus, when making a request to a web server, we need a way to tell the web server to perform the secure protocol version of HTTP. This is done in the scheme of the URL.
+
+In normal, nonsecure HTTP, the scheme prefix of the URL is http, as in:
+
+```
+http://www.joes-hardware.com/index.html
+```
+
+In the secure HTTPS protocol, the scheme prefix of the URL is https, as in:
+
+```
+https://cajun-shop.securesites.com/Merchant2/merchant.mv?Store_Code=AGCGS
+```
+
+When a client (such as a web browser) is asked to perform a transaction on a web resource, it examines the scheme of the URL:
+
+- If the URL has an http scheme, the client opens a connection to the server on port 80 (by default) and sends it plain-old HTTP commands.
+- If the URL has an https scheme, the client opens a connection to the server on port 443 (by default) and then "handshakes" with the server, exchanging some SSL security parameters with the server in a binary format, followed by the encrypted HTTP commands
+
+Because SSL traffic is a binary protocol, completely different from HTTP, the traffic is carried on different ports (SSL usually is carried over port 443). If both SSL and HTTP traffic arrived on port 80, most web servers would interpret binary SSL traffic as erroneous HTTP and close the connection. A more integrated layering of security services into HTTP would have eliminated the need for multiple destination ports, but this does not cause severe problems in practice.
+
+#### Secure Transport Setup
+
+In HTTPS, the client first opens a connection to port 443 (the default port for secure HTTP) on the web server. Once the TCP connection is established, the client and server initialize the SSL layer, negotiating cryptography parameters and exchang- ing keys. When the handshake completes, the SSL initialization is done, and the cli- ent can send request messages to the security layer. These messages are encrypted before being sent to TCP.
+
+#### SSL Handshake
+
+Before you can send encrypted HTTP messages, the client and server need to do an SSL handshake, where they:
+
+- Exchange protocol version numbers.
+- Select a cipher that each side knows.
+- Authenticate the identity of each side.
+- Generate temporary session keys to encrypt the channel.
+
+Before any encrypted HTTP data flies across the network, SSL already has sent a bunch of handshake data to establish the communication.
+
+#### Server Certificates
+
+SSL supports mutual authentication, carrying server certificates to clients and carry- ing client certificates back to servers. But today, client certificates are not commonly used for browsing. Most users don't even possess personal client certificates. A web server can demand a client certificate, but that seldom occurs in practice.
+
+On the other hand, secure HTTPS transactions always require server certificates. When you perform a secure transaction on a web server, such as posting your credit card information, you want to know that you are talking to the organization you think you are talking to. Server certificates, signed by a well-known authority, help you assess how much you trust the server before sending your credit card or personal information.
+
+#### Site Certificate Validation
+
+SSL itself doesn't require you to examine the web server certificate, but most modern browsers do some simple sanity checks on certificates and provide you with the means to do more thorough checks. One algorithm for web server certificate validation, proposed by Netscape, forms the basis of most browser's validation techniques. The steps are:
+
+##### Date check
+
+First, the browser checks the certificate's start and end dates to ensure the certificate is still valid. If the certificate has expired or has not yet become active, the certificate validation fails and the browser displays an error.
+
+##### Signer trust check
+
+Every certificate is signed by some certificate authority (CA), who vouches for the server. There are different levels of certificate, each requiring different levels of background verification. For example, if you apply for an e-commerce server certificate, you usually need to provide legal proof of incorporation as a business.
+
+Anyone can generate certificates, but some CAs are well-known organizations with well-understood procedures for verifying the identity and good business behavior of certificate applicants. For this reason, browsers ship with a list of signing authorities that are trusted. If a browser receives a certificate signed by some unknown (and possibly malicious) authority, the browser usually displays a warning. Browsers also may choose to accept any certificates with a valid signing path to a trusted CA. In other words, if a trusted CA signs a certificate for "Sam's Signing Shop" and Sam's Signing Shop signs a site certificate, the browser may accept the certificate as deriving from a valid CA path.
+
+##### Signature check
+
+Once the signing authority is judged as trustworthy, the browser checks the cer- tificate's integrity by applying the signing authority's public key to the signature and comparing it to the checksum.
+
+##### Site identity check
+
+**_To prevent a server from copying someone else's certificate or intercepting their traffic, most browsers try to verify that the domain name in the certificate matches the domain name of the server they talked to. Server certificates usually contain a single domain name, but some CAs create certificates that contain lists of server names or wildcarded domain names, for clusters or farms of servers. If the host- name does not match the identity in the certificate, user-oriented clients must either notify the user or terminate the connection with a bad certificate error._**
+
+#### A Real HTTPS Client
+
+SSL is a complicated binary protocol. Unless you are a crypto expert, you shouldn't send raw SSL traffic directly. Thankfully, several commercial and open source libraries exist to make it easier to program SSL clients and servers.
+
+##### OpenSSL
+
+OpenSSL is the most popular open source implementation of SSL and TLS. The OpenSSL Project is a collaborative volunteer effort to develop a robust, commercial- grade, full-featured toolkit implementing the SSL and TLS protocols, as well as a full- strength, general-purpose cryptography library. You can get information about OpenSSL, and download the software, from <http://www.openssl.org>.
+
+### Tunneling Secure Traffic Through Proxies
+
+Many corporations place a proxy at the security perimeter of the corporate network and the public Internet. The proxy is the only device permitted by the firewall routers to exchange HTTP traffic, and it may employ virus checking or other content controls.
+
+But once the client starts encrypting the data to the server, using the server's public key, the proxy no longer has the ability to read the HTTP header! And if the proxy cannot read the HTTP header, it won't know where to forward the request.
+
+To make HTTPS work with proxies, a few modifications are needed to tell the proxy where to connect. One popular technique is the HTTPS SSL tunneling protocol.
+
+Using the HTTPS tunneling protocol, the client first tells the proxy the secure host and port to which it wants to connect. It does this in plaintext, before encryption starts, so the proxy can read this information.
+
+HTTP is used to send the plaintext endpoint information, using a new extension method called CONNECT. The CONNECT method tells the proxy to open a connection to the desired host and port number and, when that's done, to tunnel data directly between the client and server. The CONNECT method is a one-line text command that provides the hostname and port of the secure origin server, separated by a colon. The host:port is followed by a space and an HTTP version string followed by a CRLF. After that there is a series of zero or more HTTP request header lines, followed by an empty line. After the empty line, if the handshake to establish the connection was successful, SSL data transfer can begin. Here is an example:
+
+```
+CONNECT home.netscape.com:443 HTTP/1.0
+User-agent: Mozilla/1.1N
+<raw SSL-encrypted data would follow here...>
+```
+
+After the empty line in the request, the client will wait for a response from the proxy. The proxy will evaluate the request and make sure that it is valid and that the user is authorized to request such a connection. If everything is in order, the proxy will make a connection to the destination server and, if successful, send a 200 Connection Established response to the client.
+
+```
+HTTP/1.0 200 Connection established
+Proxy-agent: Netscape-Proxy/1.1
+```
+
+## Chapter 15: Entities and Encodings
+
+### Messages Are Crates, Entities Are Cargo
+
+If you think of HTTP messages as the crates of the Internet shipping system, then HTTP entities are the actual cargo of the messages.
+
+HTTP message. HTTP/1.1 defines 10 primary entity header fields:
+
+Header           | Description
+:--------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Content-Type     | The kind of object carried by the entity.
+Content-Length   | The length or size of the message being sent.
+Content-Language | The human language that best matches the object being sent.
+Content-Encoding | Any transformation (compression, etc.) performed on the object data.
+Content-Location | An alternate location for the object at the time of the request.
+Content-Range    | If this is a partial entity, this header defines which pieces of the whole are included.
+Content-MD5      | A checksum of the contents of the entity body.
+Last-Modified    | The date on which this particular content was created or modified at the server.
+Expires          | The date and time at which this entity data will become stale.
+Allow            | What request methods are legal on this resource; e.g., GET and HEAD.
+ETag             | A unique validator for this particular instance of the document. The ETag header is not defined formally as an entity header, but it is an important header for many operations involving entities.
+Cache-Control    | Directives on how this document can be cached. The Cache-Control header, like the ETag header, is not defined formally as an entity header.
+
+### Entity Bodies
+
+The entity body just contains the raw cargo. Any other descriptive information is contained in the headers. Because the entity body cargo is just raw data, the entity headers are needed to describe the meaning of that data. For example, the Content- Type entity header tells us how to interpret the data (image, text, etc.), and the Content-Encoding entity header tells us if the data was compressed or otherwise recoded.
+
+The raw content begins immediately after the blank CRLF line that marks the end of the header fields. Whatever the content is--text or binary, document or image, com- pressed or uncompressed, English or French or Japanese--it is placed right after the CRLF.
+
+### Content-Length: The Entity's Size
+
+The Content-Length header indicates the size of the entity body in the message, **_in bytes_**. The size includes any content encodings (the Content-Length of a gzip-compressed text file will be the compressed size, not the original size). The Content-Length header is mandatory for messages with entity bodies, unless the message is transported using chunked encoding.
+
+### Content-Length and Persistent Connections
+
+Content-Length is essential for persistent connections. If the response comes across a persistent connection, another HTTP response can immediately follow the current response. The Content-Length header lets the client know where one message ends and the next begins. Because the connection is persistent, the client cannot use connection close to identify the message's end. Without a Content-Length header, HTTP applications won't know where one entity body ends and the next message begins.
+
+### Content Encoding
+
+HTTP lets you encode the contents of an entity body, perhaps to make it more secure or to compress it to take up less space. If the body has been content-encoded, the Content-Length header specifies the length, in bytes, of the encoded body, not the length of the original, unencoded body.
+
+Some HTTP applications have been known to get this wrong and to send the size of the data before the encoding.
+
+### Entity Digests
+
+Although HTTP typically is implemented over a reliable transport protocol such as TCP/IP, parts of messages may get modified in transit for a variety of reasons, such as noncompliant transcoding proxies or buggy intermediary proxies. To detect unintended (or undesired) modification of entity body data, the sender can generate a checksum of the data when the initial entity is generated, and the receiver can sanity check the checksum to catch any unintended entity modification.
+
+The Content-MD5 header is used by servers to send the result of running the MD5 algorithm on the entity body. Only the server where the response originates may compute and send the Content-MD5 header.
+
+The Content-MD5 header contains the MD5 of the content after all content encodings have been applied to the entity body and before any transfer encodings have been applied to it. Clients seeking to verify the integrity of the message must first decode the transfer encodings, then compute the MD5 of the resulting unencoded entity body. As an example, if a document is compressed using the gzip algorithm, then sent with chunked encoding, the MD5 algorithm is run on the full gripped body.
+
+### Media Type and Charset
+
+The Content-Type header field describes the MIME type of the entity body.* The MIME type is a standardized name that describes the underlying type of media carried as cargo. Client applications use the MIME type to properly decipher and process the content.
+
+The Content-Type values are standardized MIME types, registered with the Internet Assigned Numbers Authority (IANA). MIME types consist of a primary media type (e.g., text, image, audio), followed by a slash, followed by a subtype that further specifies the media type.
+
+It is important to note that the Content-Type header specifies the media type of the original entity body. If the entity has gone through content encoding, for example, the Content-Type header will still specify the entity body type before the encoding.
+
+### Character Encodings for Text Media
+
+The Content-Type header also supports optional parameters to further specify the content type. The "charset" parameter is the primary example, specifying the mechanism to convert bits from the entity into characters in a text file:
+
+```
+Content-Type: text/html; charset=iso-8859-4
+```
+
+### Multipart Media Types
+
+MIME "multipart" email messages contain multiple messages stuck together and sent as a single, complex message. Each component is self-contained, with its own set of headers describing its content; the different components are concatenated together and delimited by a string.
+
+#### Multipart Form Submissions
+
+HTTP sends such requests with a Content-Type: multipart/form-data header or a Content-Type: multipart/mixed header and a multipart body, like this:
+
+```
+Content-Type: multipart/form-data; boundary=[abcdefghijklmnopqrstuvwxyz]
+```
+
+where the boundary specifies the delimiter string between the different parts of the body.
+
+If the user enters "Sally" in the text-input field and selects the text file "essayfile.txt," the user agent might send back the following data:
+
+```
+Content-Type: multipart/form-data; boundary=AaB03x
+--AaB03x
+Content-Disposition: form-data; name="submit-name"
+Sally
+--AaB03x
+Content-Disposition: form-data; name="files"; filename="essayfile.txt" Content-Type: text/plain
+...contents of essayfile.txt...
+--AaB03x--
+```
+
+#### Multipart Range Responses
+
+HTTP responses to range requests also can be multipart. Such responses come with a Content-Type: multipart/byteranges header and a multipart body with the different ranges. Here is an example of a multipart response to a request for different ranges of a document:
+
+```
+ HTTP/1.0 206 Partial content
+Server: Microsoft-IIS/5.0
+Date: Sun, 10 Dec 2000 19:11:20 GMT
+Content-Location: http://www.joes-hardware.com/gettysburg.txt
+Content-Type: multipart/x-byteranges; boundary=--[abcdefghijklmnopqrstuvwxyz]--
+Last-Modified: Sat, 09 Dec 2000 00:38:47 GMT
+
+--[abcdefghijklmnopqrstuvwxyz]--
+Content-Type: text/plain
+Content-Range: bytes 0-174/1441
+
+Fourscore and seven years ago our fathers brough forth on this continent
+a new nation, conceived in liberty and dedicated to the proposition that
+all men are created equal.
+--[abcdefghijklmnopqrstuvwxyz]--
+Content-Type: text/plain
+Content-Range: bytes 552-761/1441
+
+But in a larger sense, we can not dedicate, we can not consecrate,
+we can not hallow this ground. The brave men, living and dead who
+struggled here have consecrated it far above our poor power to add
+or detract.
+--[abcdefghijklmnopqrstuvwxyz]--
+Content-Type: text/plain
+Content-Range: bytes 1344-1441/1441
+
+and that government of the people, by the people, for the people shall
+not perish from the earth.
+
+--[abcdefghijklmnopqrstuvwxyz]--
+```
+
+### Content Encoding
+
+HTTP applications sometimes want to encode content before sending it. These types of encodings are applied to the content at the sender. Once the content is content-encoded, the encoded data is sent to the receiver in the entity body as usual. The content-encoding process is:
+
+1. A web server generates an original response message, with original Content- Type and Content-Length headers.
+2. A content-encoding server (perhaps the origin server or a downstream proxy) creates an encoded message. The encoded message has the same Content-Type but (if, for example, the body is compressed) a different Content-Length. The content-encoding server adds a Content-Encoding header to the encoded message, so that a receiving application can decode it.
+3. A receiving program gets the encoded message, decodes it, and obtains the original.
+
+#### Content-Encoding Types
+
+HTTP defines a few standard content-encoding types and allows for additional encodings to be added as extension encodings. Encodings are standardized through the IANA, which assigns a unique token to each content-encoding algorithm. The Content-Encoding header uses these standardized token values to describe the algorithm used in the encoding.
+
+Content-encoding value | Description
+:--------------------- | :-------------------------------------------------------------------------------------------------------------------------------
+gzip                   | Indicates that the GNU zip encoding was applied to the entity.
+compress               | Indicates that the Unix file compression program has been run on the entity.
+deflate                | Indicates that the entity has been compressed into the zlib format.
+identity               | Indicates that no encoding has been performed on the entity. When a Content-Encoding header is not present, this can be assumed.
+
+The gzip, compress, and deflate encodings are lossless compression algorithms used to reduce the size of transmitted messages without loss of information. Of these, gzip typically is the most effective compression algorithm and is the most widely used.
+
+#### Accept-Encoding Headers
+
+Of course, we don't want servers encoding content in ways that the client can't decipher. To prevent servers from using encodings that the client doesn't support, the client passes along a list of supported content encodings in the Accept-Encoding request header. If the HTTP request does not contain an Accept-Encoding header, a server can assume that the client will accept any encoding.
+
+### Range Requests
+
+HTTP allows clients to actually request just part or a range of a document.
+
+Imagine if you were three-fourths of the way through downloading the latest hot soft- ware across a slow modem link, and a network glitch interrupted your connection. You would have been waiting for a while for the download to complete, and now you would have to start all over again, hoping the same thing does not happen again.
+
+With range requests, an HTTP client can resume downloading an entity by asking for the range or part of the entity it failed to get (provided that the object did not change at the origin server between the time the client first requested it and its subsequent range request). For example:
+
+```
+GET /bigfile.html HTTP/1.1
+Host: www.joes-hardware.com
+Range: bytes=4000-
+User-Agent: Mozilla/4.61 [en] (WinNT; I)
+...
+```
+
+In this example, the client is requesting the remainder of the document after the first 4,000 bytes (the end bytes do not have to be specified, because the size of the document may not be known to the requestor). Range requests of this form can be used for a failed request where the client received the first 4,000 bytes before the failure. The Range header also can be used to request multiple ranges (the ranges can be specified in any order and may overlap)--for example, imagine a client connecting to multiple servers simultaneously, requesting different ranges of the same document from different servers in order to speed up overall download time for the document. In the case where clients request multiple ranges in a single request, responses come back as a single entity, with a multipart body and a Content-Type: multipart/byteranges header.
+
+Not all servers accept range requests, but many do. Servers can advertise to clients that they accept ranges by including the header Accept-Ranges in their responses. The value of this header is the unit of measure, usually bytes. For example:
+
+```
+ HTTP/1.1 200 OK
+Date: Fri, 05 Nov 1999 22:35:15 GMT
+Server: Apache/1.2.4
+Accept-Ranges: bytes
+```
+
+Range headers are used extensively by popular peer-to-peer file-sharing client software to download different parts of multimedia files simultaneously, from different peers.
+
+Note that range requests are a class of instance manipulations, because they are exchanges between a client and a server for a particular instance of an object. That is, a client's range request makes sense only if the client and server have the same version of a document.
+
+### Delta Encoding
+
+Rather than sending it the entire new page, the client would get the page faster if the server sent just the changes to the client's copy of the page (provided that the number of changes is small). Delta encoding is an extension to the HTTP protocol that optimizes transfers by communicating changes instead of entire objects. Delta encoding is a type of instance manipulation, because it relies on clients and servers exchanging information about particular instances of an object.
+
+## Chapter 16: Internationalization
+
+HTTP applications use character set encodings to request and display text in different alphabets, and they use language tags to describe and restrict content to languages the user understands.
+
+HTTP messages can carry content in any language, just as it can carry images, movies, or any other kind of media. To HTTP, the entity body is just a box of bits.
+
+To support international content, servers need to tell clients about the alphabet and languages of each document, so the client can properly unpack the document bits into characters and properly process and present the content to the user.
+
+Servers tell clients about a document's alphabet and language with the HTTP Content-Type charset parameter and Content-Language headers. These headers describe what's in the entity body's "box of bits," how to convert the contents into the proper characters that can be displayed onscreen, and what spoken language the words represent.
+
+At the same time, the client needs to tell the server which languages the user under- stands and which alphabetic coding algorithms the browser has installed. The client sends Accept-Charset and Accept-Language headers to tell the server which character set encoding algorithms and languages the client understands, and which of them are preferred.
+
+### Charset Is a Character-to-Bits Encoding
+
+The HTTP charset values tell you how to convert from entity content bits into characters in a particular alphabet. Each charset tag names an algorithm to translate bits to characters (and vice versa). The charset tags are standardized in the MIME character set registry, maintained by the IANA.
+
+The following Content-Type header tells the receiver that the content is an HTML file, and the charset parameter tells the receiver to use the iso-8859-6 Arabic character set decoding scheme to decode the content bits into characters:
+
+```
+Content-Type: text/html; charset=iso-8859-6
+```
+
+The iso-8859-6 encoding scheme maps 8-bit values into both the Latin and Arabic alphabets, including numerals, punctuation and other symbols.
+
+Some character encodings (e.g., UTF-8 and iso-2022-jp) are more complicated, variable-length codes, where the number of bits per character varies. This type of coding lets you use extra bits to support alphabets with large numbers of characters (such as Chinese and Japanese), while using fewer bits to support standard Latin characters.
+
+### How Character Sets and Encodings Work
+
+We want to convert from bits in a document into characters that we can display onscreen. But because there are many different alphabets, and many different ways of encoding characters into bits (each with advantages and disadvantages), we need a standard way to describe and apply the bits-to-character decoding algorithm.
+
+HTTP concerns itself only with transporting the character data and the associated language and charset labels. The presentation of the character shapes is handled by the user's graphics display software.
+
+### The Wrong Charset Gives the Wrong Characters
+
+If the client uses the wrong charset parameter, the client will display strange, bogus characters.
+
+### Standardized MIME Charset Values
+
+The combination of a particular character encoding and a particular coded character set is called a MIME charset. HTTP uses standardized MIME charset tags in the Con- tent-Type and Accept-Charset headers. MIME charset values are registered with the IANA.
+
+### Content-Type Charset Header and META Tags
+
+Web servers send the client the MIME charset tag in the Content-Type header, using the charset parameter:
+
+```
+Content-Type: text/html; charset=iso-2022-jp
+```
+
+If no charset is explicitly listed, the receiver may try to infer the character set from the document contents. For HTML content, character sets might be found in
+
+<meta http-equiv="Content-Type">
+
+tags that describe the charset.
+
+Character encoding can be specified in HTML META tags:
+
+```
+<HEAD>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-2022-jp"> <META LANG="jp">
+  <TITLE>A Japanese Document</TITLE>
+</HEAD>
+```
+
+### The Accept-Charset Header
+
+HTTP clients can tell servers precisely which character systems they support, using the Accept-Charset request header.
+
+For example, the following HTTP request header indicates that a client accepts the Western European iso-8859-1 character system as well as the UTF-8 variable-length Unicode compatibility system. A server is free to return content in either of these character encoding schemes.
+
+HTTP Accept-Charset header and the Content-Type charset parameter carry character-encoding information from the client and server.
+
+### Language Tags and HTTP
+
+There are language tags for English (en), German (de), Korean (ko), and many other languages. Language tags can describe regional variants and dialects of languages, such as Brazilian Portuguese (pt-BR), U.S. English (en-US), and Hunan Chinese (zh-xiang). There is even a standard language tag for Klingon (i-klingon)!
+
+The Content-Language entity header field describes the target audience languages for the entity. If the content is intended primarily for a French audience, the Content- Language header field would contain:
+
+```
+Content-Language: fr
+```
+
+If the content is intended for multiple audiences, you can list multiple languages:
+
+```
+Content-Language: mi, en
+```
+
+### The Accept-Language Header
+
+```
+Accept-Language: es
+```
+
+Language tags can be used to represent:
+
+- General language classes (as in "es" for Spanish)
+- Country-specific languages (as in "en-GB" for English in Great Britain)
+- Dialects of languages (as in "no-bok" for Norwegian "Book Language")
+- Regional languages (as in "sgn-US-MA" for Martha's Vineyard sign language)
+- Standardized nonvariant languages (e.g., "i-navajo")
+- Nonstandard languages (e.g., "x-snowboarder-slang")
+
+## Chapter 17: Content Negotiation and Transcoding
+
+No notes.
+
+## Chapter 18: Web hosting
+
+The collective duties of storing, brokering, and administering content resources is called **_web hosting_**. If you don't want to manage the required hardware and software yourself, you need a hosting service, or hoster. Hosters rent you serving and web-site administration services and provide various degrees of security, reporting, and ease of use. Hosters typically pool web sites on heavy-duty web servers for cost-efficiency, reliability, and performance.
+
+Many levels of service are available, from physical facilities management (providing space, air conditioning, and wiring) to full-service web hosting, where all the customer does is provide the content.
+
+### Virtual Hosting
+
+Many folks want to have a web presence but don't have high-traffic web sites. For these people, providing a dedicated web server may be a waste, because they're pay- ing many hundreds of dollars a month to lease a server that is mostly idle!
+
+Many web hosters offer lower-cost web hosting services by sharing one computer between several customers. This is called shared hosting or virtual hosting. Each web site appears to be hosted by a different server, but they really are hosted on the same physical server. From the end user's perspective, virtually hosted web sites should be indistinguishable from sites hosted on separate dedicated servers.
+
+For cost efficiency, space, and management reasons, a virtual hosting company wants to host tens, hundreds, or thousands of web sites on the same server--but this does not necessarily mean that 1,000 web sites are served from only one PC. Hosters can create banks of replicated servers (called server farms) and spread the load across the farm of servers. Because each server in the farm is a clone of the others, and hosts many virtual web sites, administration is much easier.
+
+Unfortunately, there is a design flaw in HTTP/1.0 that makes virtual hosters pull their hair out. The HTTP/1.0 specification didn't give any means for shared web servers to identify which of the virtual web sites they're hosting is being accessed.
+
+Because the early specifications did not make provisions for virtual hosting, web hosters needed to develop workarounds and conventions to support shared virtual hosting. The problem could have been solved simply by requiring all HTTP request messages to send the full URL instead of just the path component. HTTP/1.1 does require servers to handle full URLs in the request lines of HTTP messages, but it will be a long time before all legacy applications are upgraded to this specification. In the meantime, four techniques have emerged:
+
+Technique                      | Description
+:----------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Virtual hosting by URL path    | Adding a special path component to the URL so the server can determine the site.
+Virtual hosting by port number | Assigning a different port number to each site, so requests are handled by separate instances of the web server.
+Virtual hosting by IP address  | Dedicating different IP addresses for different virtual sites and binding all the IP addresses to a single machine. This allows the web server to identify the site name by IP address.
+Virtual hosting by Host header | Many web hosters pressured the HTTP designers to solve this problem. Enhanced versions of HTTP/1.0 and the official version of HTTP/1.1 define a Host request header that carries the site name. The web server can identify the virtual site from the Host header.
+
+#### Virtual hosting by Host header
+
+To avoid excessive address consumption and virtual IP limits, we'd like to share the same IP address among virtual sites, but still be able to tell the sites apart. But as we've seen, because most browsers send just the path component of the URL to servers, the critical virtual hostname information is lost.
+
+To solve this problem, browser and server implementors extended HTTP to provide the original hostname to servers. But browsers couldn't just send a full URL, because that would break many servers that expected to receive only a path component. Instead, the hostname (and port) is passed in a Host extension header in all requests.
+
+Host headers are required for HTTP/1.1 compliance.
+
+### HTTP/1.1 Host Headers
+
+#### Syntax and usage
+
+The Host header specifies the Internet host and port number for the resource being requested, as obtained from the original URL:
+
+```
+Host = "Host" ":" host [ ":" port ]
+```
+
+### Making Web Sites Reliable
+
+#### Mirrored Server Farms
+
+A server farm is a bank of identically configured web servers that can cover for each other. The content on each server in the farm can be mirrored, so that if one has a problem, another can fill in.
+
+Often, mirrored servers follow a hierarchical relationship. One server might act as the "content authority"--the server that contains the original content (perhaps a server to which the content authors post). This server is called the master origin server. The mirrored servers that receive content from the master origin server are called replica origin servers.
+
+### Making Web Sites Fast
+
+Many of the technologies mentioned in the previous section also help web sites load faster. Server farms and distributed proxy caches or surrogate servers distribute net- work traffic, avoiding congestion. Distributing the content brings it closer to end users, so that the travel time from server to client is lower. The key to speed of resource access is how requests and responses are directed from client to server and back across the Internet.
+
+Another approach to speeding up web sites is encoding the content for fast transportation. This can mean, for example, compressing the content, assuming that the receiving client can uncompress it.
+
+## Chapter 19: Publishing systems
+
+How do you create web pages and get them onto a web server? In the dark ages of the Web (let's say, 1995), you might have hand-crafted your HTML in a text editor and manually uploaded the content to the web server using FTP. This procedure was painful, difficult to coordinate with coworkers, and not particularly secure.
+
+Modern-day publishing tools make it much more convenient to create, publish, and manage web content. Today, you can interactively edit web content as you'll see it on the screen and publish that content to servers with a single click, while being notified of any files that have changed.
+
+## Chapter 20: Redirection and Load Balancing
+
+HTTP does not walk the Web alone. The data in an HTTP message is governed by many protocols on its journey. HTTP cares only about the endpoints of the journey-- the sender and the receiver--but in a world with mirrored servers, web proxies, and caches, the destination of an HTTP message is not necessarily straightforward.
+
+Redirection technologies usually determine whether the message ends up at a proxy, a cache, or a particular web server in a server farm. Redirection technologies may send your messages to places a client didn't explicitly request.
+
+### Why Redirect?
+
+Redirection is a fact of life in the modern Web because HTTP applications always want to do three things:
+
+- Perform HTTP transactions reliably
+- Minimize delay
+- Conserve network bandwidth
+
+For these reasons, web content often is distributed in multiple locations. This is done for reliability, so that if one location fails, another is available; it is done to lower response times, because if clients can access a nearer resource, they receive their requested content faster; and it's done to lower network congestion, by spreading out target servers. You can think of redirection as a set of techniques that help to find the "best" distributed content.
+
+### Where to Redirect
+
+Servers, proxies, caches, and gateways all appear to clients as servers, in the sense that a client sends them an HTTP request, and they process it. Web servers handle requests on a per-IP basis. Distributing requests to duplicate servers means that each request for a specific URL should be sent to an optimal web server (the one nearest to the client, or the least-loaded one, or some other optimization). Redirecting to a server is like sending all drivers in search of gasoline to the nearest gas station.
+
+Proxies tend to handle requests on a per-protocol basis. Ideally, all HTTP traffic in the neighborhood of a proxy should go through the proxy. For instance, if a proxy cache is near various clients, all requests ideally will flow through the proxy cache, because the cache will store popular documents and serve them directly, avoiding longer and more expensive trips to the origin servers.
+
+### Overview of Redirection Protocols
+
+- The browser application that creates the client's message could be configured to send it to a proxy server.
+- DNS resolvers choose the IP address that is used for addressing the message. This IP address can be different for different clients in different geographical locations.
+- As the message passes through networks, it is divided into addressed packets; switches and routers examine the TCP/IP addressing on the packets and make decisions about routing the packets on that basis.
+- Web servers can bounce requests back to different web servers with HTTP redirects.
+
+Browser configuration, DNS, TCP/IP routing, and HTTP all provide mechanisms for redirecting messages. Notice that some methods, such as browser configuration, make sense only for redirecting traffic to proxies, while others, such as DNS redirection, can be used to send traffic to any server.
+
+General redirection methods:
+
+Mechanism             | How it works                                                                                                                                                                                                                             | Basis for rerouting                                                                                  | Limitations
+:-------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+HTTP redirection      | Initial HTTP request goes to a first web server that chooses a "best" web server to serve the content. The first web server sends the client an HTTP redirect to the chosen server. The client resends the request to the chosen server. | Many options, from round-robin load balancing, to minimizing latency, to choosing the shortest path. | Can be slow--every transaction involves the extra redirect step. Also, the first server must be able to handle the request load.
+DNS redirection       | DNS server decides which IP address, among several, to return for the host- name in the URL.                                                                                                                                             | Many options, from round-robin load balancing, to minimizing latency, to choosing the shortest path. | Need to configure DNS server.
+Anycast addressing    | Several servers use the same IP address. Each server masquerades as a backbone router. The other routers send packets addressed to the shared IP to the nearest server (believing they are sending packets to the nearest router).       | Routers use built-in shortest-path routing capabilities.                                             | Need to own/configure routers. Risks address conflicts. Established TCP connections can break if routing changes and packets associated with a connection get sent to different servers.
+IP MAC forwarding     | A network element such as a switch or router reads a packet's destination address; if the packet should be redirected, the switch gives the packet the destination MAC address of a server or proxy.                                     | Save bandwidth and improve QOS. Load balance.                                                        | Server or proxy must be one hop away.
+IP address forwarding | Layer-4 switch evaluates a packet's destination port and changes the IP address of a redirect packet to that of a proxy or mirrored server.                                                                                              | Save bandwidth and improve QOS. Load balance.                                                        | IP address of the client can be lost to the server/proxy.
+
+## Chapter 21: Logging and Usage tracking
+
+Almost all servers and proxies log summaries of the HTTP transactions they process.
+
+You could log all of the headers in an HTTP transaction, but for servers and proxies that process millions of transactions per day, the sheer bulk of all of that data quickly would get out of hand.
+
+Typically, just the basics of a transaction are logged. A few examples of commonly logged fields are:
+
+- HTTP method
+- HTTP version of client and server
+- URL of the requested resource
+- HTTP status code of the response
+- Size of the request and response messages (including any entity bodies)
+- Timestamp of when the transaction occurred
+- Referer and User-Agent header values
+
+### Log Formats
+
+#### Common Log Format
+
+One of the most common log formats in use today is called, appropriately, the Common Log Format. Originally defined by NCSA, many servers use this log format as a default. Most commercial and open source servers can be configured to use this format, and many commercial and freeware tools exist to help parse common log files.
