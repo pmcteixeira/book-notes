@@ -6,4 +6,4 @@ This is a note collection of things that I've read, inspired by [30 second habit
 
 ## Books
 
-- [HTTP: The Definitive Guide](/http-the-definitive-guide/http-the-definitive-guide.markdown.md)
+- [HTTP: The Definitive Guide](/books/http-the-definitive-guide/http-the-definitive-guide.markdown)
