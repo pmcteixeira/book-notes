@@ -159,25 +159,11 @@ _These book notes were taken to further my own learning and for quick reference.
   - [Log Formats](#log-formats)
     - [Common Log Format](#common-log-format)
 
-![Part 1 Mind Map (Chapters 1-4)](assets/part_1.png)
-
-![Chapter 5](assets/chapter_5.png)
-
-![Chapter 6](assets/chapter_6.png)
-
-![Chapter 7](assets/chapter_7.png)
-
-![Chapter 6](assets/chapter_11.png)
-
 ## Chapter 1: Overview of HTTP
 
-_HTTP_ is the common language between _web browsers_, _web servers_ and related _web applications_.
+**HTTP** is the common language between **web browsers**, **web servers** and related **web applications**. Web servers host **web resources**, e.g: static files stored in the filesystem — _text files, HTML files, JPEG image files, AVI movie files, or any other file_. **_Resources can also be software programs that generate content on demand_**. HTTP moves resources reliably from servers to browsers upon request. The client sends a **HTTP request** and servers retrieve a **HTTP response**.
 
-Web servers host web content, also referred as _web resources_. The simplest kind of web resources is static files stored in the web server's filesystem. They can be simple text files, HTML files, JPEG image files, AVI movie files, or any other file. _Resources can also be software programs that generate content on demand_.
-
-HTTP moves web content reliably from web servers to web browsers, without worry about the flaws of internet data transmission. Web servers provide web content upon request. The client sends a **_HTTP request_** and servers retrieve a **_HTTP response_**.
-
-HTTP tags each data type being transferred with a label called _MIME type_. A MIME type is a text label, represented by a primary object type and a specific subtype, separated by a slash. There are hundreds of popular MIME types, here are a few:
+HTTP tags each data type being transferred with a **MIME** type — a text label. Here are a few:
 
 Data Type       | MIME label
 :-------------- | :--------------
@@ -189,19 +175,15 @@ QuickTime movie | video/quicktime
 
 ### URI, URL and URN
 
-A web resource is uniquely identified and located by a _URI_ (_uniform resource identifier_). Given the URI, HTTP can retrieve the correspondent resource. URI come in two flavors, called URLs and URNs.
+A web resource is uniquely identified and located by a **URI** (_uniform resource identifier_). Given the URI, HTTP can retrieve the correspondent resource. URI come in two flavors: **URLs** and **URNs**.
 
 The **uniform resource locator** (URL) is the most common form or URI. URL describes the **specific location** of a resource on a particular server. Most URL follow a standardized format in three main parts:
 
-- _scheme_ (describes the protocol used)
-- _server address_
-- _resource_ name.
+- _scheme_ (describes the protocol used) e.g: **http://**
+- _server address_ e.g: **www.joes-hardware.com**
+- _resource_ name. e.g: **/specials/saw-blade.gif**
 
-1\. Use HTTP protocol | 2\. Go to www.joes-hardware.com | 3\. Grab the resource called /specials/saw-blade.gif
-:-------------------- | :------------------------------ | ----------------------------------------------------
-http://               | www.joes-hardware.com           | /specials/saw-blade.gif
-
-The second flavor is _uniform resource name_ or URN. A URN is a unique name to identify a resource, independently of where the resource is located. URN allows the resource to move from place to place, and being accessed by multiple protocols while maintaining the same name. The "RFC 2141" URN is:
+The second flavor is **uniform resource name** or URN. A URN is a unique name to identify a resource, independently of where the resource is located. URN allows the resource to move from place to place, and being accessed by multiple protocols while maintaining the same name. The "RFC 2141" URN is:
 
 > urn:ietf:rfc:2141
 
@@ -336,7 +318,7 @@ file   | The file scheme denotes files directly accessible on a given host machi
 
 ## Chapter 3: HTTP Messages
 
-HTTP messages are the blocks of data sent between HTTP applications. These blocks of data begin with some text meta-information describing the message con- tents and meaning, followed by optional data. These messages flow between clients, servers, and proxies. The terms **inbound**, **outbound**, **upstream**, and **downstream** describe message direction.
+HTTP messages are the blocks of data sent between HTTP applications. These blocks of data begin with some text meta-information describing the message contents and meaning, followed by optional data. These messages flow between clients, servers, and proxies. The terms **inbound**, **outbound**, **upstream**, and **downstream** describe message direction.
 
 HTTP uses the terms inbound and outbound to describe transactional direction. Messages travel inbound to the origin server, and when their work is done, they travel outbound back to the user agent.
 
@@ -627,7 +609,10 @@ Here are a few other examples of dynamic parent proxy selection:
 
 Because clients normally talk directly to web servers, we need to explain how HTTP traffic finds its way to a proxy in the first place. There are four common ways to cause client traffic to get to a proxy:
 
-![Chapter 6 Proxy traffic.)](assets/chapter_6_proxy_traffic.png)
+- Client configured to use proxy
+- Network intercepts and redirects traffic to proxy.
+- Surrogate stands in for web server.
+- Server redirects HTTP requests to proxy.
 
 ## Chapter 7: Caching
 
@@ -1002,7 +987,7 @@ Digest authentication is an alternate HTTP authentication protocol that tries to
 
 ### Using Digests to Keep Passwords Secret
 
-The motto of digest authentication is "never send the password across the network." Instead of sending the password, the client sends a "fingerprint" or "digest" of the password, which is an irreversible scrambling of the password. The client and the server both know the secret password, so the server can verify that the digest pro- vided a correct match for the password. Given only the digest, a bad guy has no easy way to find what password it came from, other than going through every password in the universe, trying each one!
+The motto of digest authentication is "never send the password across the network." Instead of sending the password, the client sends a "fingerprint" or "digest" of the password, which is an irreversible scrambling of the password. The client and the server both know the secret password, so the server can verify that the digest provided a correct match for the password. Given only the digest, a bad guy has no easy way to find what password it came from, other than going through every password in the universe, trying each one!
 
 ### One-Way Digests
 
@@ -1071,7 +1056,7 @@ Because SSL traffic is a binary protocol, completely different from HTTP, the tr
 
 #### Secure Transport Setup
 
-In HTTPS, the client first opens a connection to port 443 (the default port for secure HTTP) on the web server. Once the TCP connection is established, the client and server initialize the SSL layer, negotiating cryptography parameters and exchang- ing keys. When the handshake completes, the SSL initialization is done, and the cli- ent can send request messages to the security layer. These messages are encrypted before being sent to TCP.
+In HTTPS, the client first opens a connection to port 443 (the default port for secure HTTP) on the web server. Once the TCP connection is established, the client and server initialize the SSL layer, negotiating cryptography parameters and exchanging keys. When the handshake completes, the SSL initialization is done, and the client can send request messages to the security layer. These messages are encrypted before being sent to TCP.
 
 #### SSL Handshake
 
@@ -1567,3 +1552,15 @@ Typically, just the basics of a transaction are logged. A few examples of common
 #### Common Log Format
 
 One of the most common log formats in use today is called, appropriately, the Common Log Format. Originally defined by NCSA, many servers use this log format as a default. Most commercial and open source servers can be configured to use this format, and many commercial and freeware tools exist to help parse common log files.
+
+## Mind Maps
+
+![Part 1 Mind Map (Chapters 1-4)](assets/part_1.png)
+
+![Chapter 5](assets/chapter_5.png)
+
+![Chapter 6](assets/chapter_6.png)
+
+![Chapter 7](assets/chapter_7.png)
+
+![Chapter 6](assets/chapter_11.png)
