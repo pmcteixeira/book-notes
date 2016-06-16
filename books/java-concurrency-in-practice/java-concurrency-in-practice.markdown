@@ -38,19 +38,13 @@ Writing thread-safe code is, at its core, about managing access to state, and in
 
 The primary mechanism for synchronization in Java is the synchronized keyword, which provides exclusive locking, but the term "synchronization" also includes the use of volatile variables, explicit locks, and atomic variables.
 
-If􀀃 multiple􀀃 threads􀀃 access􀀃 the􀀃 same􀀃 mutable􀀃 state􀀃 variable􀀃 without􀀃 appropriate􀀃 synchronization,􀀃 your􀀃 program􀀃 is􀀃 broken.􀀃There􀀃 are 􀀃three 􀀃ways􀀃 to 􀀃fix 􀀃it:􀀃
-
-- Don't􀀃 share􀀃 the􀀃 state􀀃 variable􀀃 across􀀃 threads;􀀃
-- Make􀀃 the􀀃 state􀀃 variable􀀃 immutable;􀀃 or􀀃
-- Use􀀃 synchronization􀀃 whenever􀀃 accessing􀀃 the􀀃 state􀀃 variable.􀀃
-
 In a large program, identifying whether multiple threads might access a given variable can be complicated. The Java language doesn't force you to encapsulate state. But the better encapsulated your program state, the easier it is to make your program thread-safe and to help maintainers keep it that way.
 
 A class is thread-safe when it continues to behave correctly when accessed from multiple threads. No set of operations performed sequentially or concurrently on instances of a thread-safe class can cause an instance to be in an invalid state.
 
 ### Example: a stateless servelet
 
-```
+```java
 @ThreadSafe
 public class StatelessFactorizer implements Servlet {
     public void service(ServletRequest req, ServletResponse resp) {
