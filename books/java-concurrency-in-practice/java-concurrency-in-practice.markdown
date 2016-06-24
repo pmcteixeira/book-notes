@@ -55,7 +55,7 @@ public class StatelessFactorizer implements Servlet {
 }
 ```
 
-StatelessFactorizer is, like most servlets, stateless: it has no fields and references no fields from other classes. The transient state for a particular computation exists solely in local variables that are stored on the thread's stack and are accessible only to the executing thread. One thread accessing a StatelessFactorizer cannot influence the result of another thread accessing the same StatelessFactorizer; because the two threads do not share state, it is as if they were accessing different instances. Since the actions of a thread accessing a stateless object cannot affect the correctness of operations in other threads, stateless objects are threadsafe.
+`StatelessFactorizer` is, like most servlets, stateless: it has no fields and references no fields from other classes. The transient state for a particular computation exists solely in local variables that are stored on the thread's stack and are accessible only to the executing thread. One thread accessing a StatelessFactorizer cannot influence the result of another thread accessing the same `StatelessFactorizer`; because the two threads do not share state, it is as if they were accessing different instances. Since the actions of a thread accessing a stateless object cannot affect the correctness of operations in other threads, stateless objects are threadsafe.
 
 ### Atomicity
 
@@ -80,7 +80,7 @@ public class UnsafeCountingFactorizer implements Servlet {
 }
 ```
 
-UnsafeCountingFactorizer is not thread-safe, even though it would work just fine in a single-threaded environment. Just like UnsafeSequence on page 6, it is susceptible to lost updates. While the increment operation, ++count, may look like a single action because of its compact syntax, it is not atomic, which means that it does not execute as a single, indivisible operation. Instead, it is a shorthand for a sequence of three discrete operations: fetch the current value, add one to it, and write the new value back. This is an example of a read-modify-write operation, in which the resulting state is derived from the previous state.
+`UnsafeCountingFactorizer` is not thread-safe, even though it would work just fine in a single-threaded environment. Just like `UnsafeSequence`, it is susceptible to lost updates. While the increment operation, `++count`, may look like a single action because of its compact syntax, it is not atomic, which means that it does not execute as a single, indivisible operation. Instead, it is a shorthand for a sequence of three discrete operations: fetch the current value, add one to it, and write the new value back. This is an example of a **read-modify-write** operation, in which the resulting state is derived from the previous state.
 
 The possibility of incorrect results in the presence of unlucky timing is so important in concurrent programming that it has a name: **_a race condition_**.
 
@@ -103,13 +103,13 @@ public class LazyInitRace {
 }
 ```
 
-Say that threads A and B execute getInstance at the same time. A sees that instance is null, and instantiates a new ExpensiveObject. If instance is null when B examines it, the two callers to getInstance may receive two different results, even though getInstance is always supposed to return the same instance.
+Say that threads A and B execute getInstance at the same time. A sees that instance is null, and instantiates a new `ExpensiveObject`. If instance is null when B examines it, the two callers to getInstance may receive two different results, even though getInstance is always supposed to return the same instance.
 
 ### Compound actions
 
-Both LazyInitRace and UnsafeCountingFactorizer contained a sequence of operations that needed to be atomic, or indivisible, so we can ensure that other threads can observe or modify the state only before we start or after we finish, but not in the middle.
+Both `LazyInitRace` and `UnsafeCountingFactorizer` contained a sequence of operations that needed to be atomic, or indivisible, so we can ensure that other threads can observe or modify the state only before we start or after we finish, but not in the middle.
 
-To ensure thread safety, check-then-act operations (like lazy initialization) and read-modify-write operations (like increment) must always be atomic. We refer collectively to check-then-act and read-modify-write sequences as compound actions: sequences of operations that must be executed atomically in order to remain thread-safe.
+To ensure thread safety, **check-then-act** operations (like lazy initialization) and **read-modify-write** operations (like increment) must always be atomic. We refer collectively to check-then-act and read-modify-write sequences as compound actions: sequences of operations that must be executed atomically in order to remain thread-safe.
 
 ```java
 // Servlet that counts requests using AtomicLong.
@@ -129,16 +129,14 @@ public class CountingFactorizer implements Servlet {
 }
 ```
 
-The java.util.concurrent.atomic package contains atomic variable classes for effecting atomic state transitions on numbers and object references. Because the state of the servlet is the state of the counter and the counter is thread-safe, our servlet is once again thread-safe.
+The `java.util.concurrent.atomic` package contains atomic variable classes for effecting atomic state transitions on numbers and object references. Because the state of the servlet is the state of the counter and the counter is thread-safe, our servlet is once again thread-safe.
 
 ### Locking
 
 Imagine that we want to improve the performance of our servlet by caching the most recently computed result, just in case two consecutive clients request factorization of the same number.
 
-Don't do this.
-
 ```java
-// Servlet that attempts to cache its last result without adequate atomicity.
+// Servlet that attempts to cache its last result without adequate atomicity. Don't do this.
 
 @NotThreadSafe
 public class UnsafeCachingFactorizer implements Servlet {
