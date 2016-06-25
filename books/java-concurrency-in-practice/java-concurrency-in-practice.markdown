@@ -295,7 +295,7 @@ The restructuring of CachedFactorizer provides a balance between simplicity (syn
 
 ## Chapter 3: Sharing Objects
 
-![chap3_mind_map](/assets/chap3.png)
+![Chapter 3](assets/chap3.png)
 
 Synchronization also has another significant, and subtle, aspect, besides atomicity: memory visibility. We want to ensure that when a thread modifies the state of an object, other threads can actually see the changes that were made. Without synchronization, this may not happen.
 
