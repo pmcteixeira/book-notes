@@ -295,6 +295,8 @@ The restructuring of CachedFactorizer provides a balance between simplicity (syn
 
 ## Chapter 3: Sharing Objects
 
+![chap3_mind_map](/assets/chap3.png)
+
 Synchronization also has another significant, and subtle, aspect, besides atomicity: memory visibility. We want to ensure that when a thread modifies the state of an object, other threads can actually see the changes that were made. Without synchronization, this may not happen.
 
 ### Visibility & Stale Data
@@ -329,7 +331,7 @@ The Java Memory Model requires fetch and store operations to be atomic, but for 
 
 #### Locking and Visibility
 
-When thread A executes a synchronized block, and subsequently thread B enters a synchronized block guarded by the same lock, the values of variables that were visible to A prior to releasing the lock are guaranteed to be visible to B upon acquiring the lock.
+**_When thread A executes a synchronized block, and subsequently thread B enters a synchronized block guarded by the same lock, the values of variables that were visible to A prior to releasing the lock are guaranteed to be visible to B upon acquiring the lock_**.
 
 #### Volatile variables
 
@@ -351,14 +353,15 @@ You can use volatile variables only when all the following criteria are met:
 
 ### Publication and escape
 
-Publishing internal state variables can compromise encapsulation and make it more difficult to preserve invariants; An object that is published when it should not have been is said to have **escaped**. Publishing an object means making it available to code outside of its current scope, such as:
+Publishing internal state variables can compromise encapsulation and make it more difficult to preserve invariants; **An object that is published when it should not have been is said to have escaped**. Publishing an object means making it available to code outside of its current scope, such as:
 
 - by storing a reference to it where other code can find it (e.g: store a reference in a public static field)
 
   ```java
   // Publishing an object
   public static Set<Secret> knownSecrets;
-    public void initialize() {
+
+  public void initialize() {
         knownSecrets = new HashSet<Secret>();
   }
   ```
@@ -525,7 +528,7 @@ public final class ThreeStooges {
 
 #### Final fields
 
-Final fields can't be modified **(although the objects they refer to can be modified if they are mutable)**, but they also have special semantics under the Java Memory Model. It is the use of final fields that makes possible the guarantee of initialization safety that lets immutable objects be freely accessed and shared without synchronization.
+Final fields can't be modified **(although the objects they refer to can be modified if they are mutable)**, but they also have special semantics under the Java Memory Model. **It is the use of final fields that makes possible the guarantee of initialization safety that lets immutable objects be freely accessed and shared without synchronization**.
 
 #### Example: Using volatile to publish immutable objects
 
