@@ -580,6 +580,10 @@ public class VolatileCachedFactorizer implements Servlet {
 
 Unfortunately, simply storing a reference to an object into a public field, is not enough to publish that object safely. This improper publication could allow another thread to observe a partially constructed object.
 
+#### Improper publication: when good objects go bad
+
+You cannot rely on the integrity of partially constructed objects. An observing thread could see the object in an inconsistent state, and then later see its state suddenly change, even though it has not been modified since publication.
+
 ```java
 // Unsafe publication
 // Publishing an object without adequate synchronization. Don’t do this.
@@ -589,10 +593,6 @@ public void initialize() {
     holder = new Holder(42);
 }
 ```
-
-#### Improper publication: when good objects go bad
-
-You cannot rely on the integrity of partially constructed objects. An observing thread could see the object in an inconsistent state, and then later see its state suddenly change, even though it has not been modified since publication.
 
 ```java
 // Class at risk of failure if not properly published.
