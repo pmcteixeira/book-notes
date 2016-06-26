@@ -14,17 +14,11 @@ A memory model describes the relationship between variables in a program (instan
 
 For example, a compiler may choose to optimize a loop index variable by storing it in a register, or the cache may delay flushing a new value of a variable to main memory until a more opportune time. All of these optimizations are to aid in higher performance, and are generally transparent to the user, but on multiprocessor systems, these complexities may sometimes show through.
 
-The JMM allows the compiler and cache to take significant liberties with the order in which data is moved between a processor-specific cache (or register) and main memory, unless the programmer has explicitly asked for certain visibility guarantees using synchronized or volatile. This means that in the absence of synchronization, memory operations can appear to happen in different orders from the perspective of different threads.
+The JMM allows the compiler and cache to take significant liberties with the order in which data is moved between a processor-specific cache (or register) and main memory, unless the programmer has explicitly asked for certain visibility guarantees using `synchronized` or `volatile`. This means that in the absence of synchronization, memory operations can appear to happen in different orders from the perspective of different threads.
 
 ## Shortcomings of the original JMM
 
 The old JMM allowed some surprising and confusing things to happen, such as final fields appearing not to have the value that was set in the constructor (thus making supposedly immutable objects not immutable) and unexpected results with memory operation reordering.
-
-The term reordering is used to describe several classes of actual and apparent re-orderings of memory operations:
-
-- The compiler is free to reorder certain instructions as an optimization when it would not change the semantics of the program.
-- The processor is allowed to execute operations out of order under some circumstances.
-- The cache is generally allowed to write variables back to main memory in a different order than they were written by the program.
 
 ### Synchronization and visibility (semantics)
 
