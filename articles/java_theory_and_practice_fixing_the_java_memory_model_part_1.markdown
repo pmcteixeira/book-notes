@@ -4,6 +4,8 @@ by Brian Goetz
 
 [Article](https://www.ibm.com/developerworks/java/library/j-jtp02244/index.html) | ![Part 2]() | ![Part 3]()
 
+--------------------------------------------------------------------------------
+
 Not all multiprocessor systems exhibit cache coherency; if one processor has an updated value of a variable in its cache, but one which has not yet been flushed to main memory, other processors may not see that update. In the absence of cache coherency, two different processors may see two different values for the same location in memory. This may sound scary, but it is by design -- it is a means of obtaining higher performance and scalability -- but it places a burden on developers and compilers to create code that accommodates these issues.
 
 ## What is a memory model, and why do I need one?
