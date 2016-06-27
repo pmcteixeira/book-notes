@@ -59,4 +59,4 @@ The idea here is that the volatile variable initialized acts as a guard to indic
 
 ## Goals of JSR 133
 
-JSR 133, chartered to fix the JMM. The final formal semantics are more complicated than originally expected, and in fact took quite a different form than initially envisioned, but the informal semantics are clear and intuitive and will be outlined in Part 2 of this article.
+JSR 133, chartered to fix the JMM. The final formal semantics are more complicated than originally expected, and in fact took quite a different form than initially envisioned, but the informal semantics are clear and intuitive and will be outlined in [Part 2](java_theory_and_practice_fixing_the_java_memory_model_part_2.markdown) of this article.
