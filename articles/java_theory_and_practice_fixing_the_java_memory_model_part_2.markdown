@@ -2,7 +2,7 @@
 
 by Brian Goetz
 
-[Article](https://www.ibm.com/developerworks/library/j-jtp03304/) | ![Part 1](java_theory_and_practice_fixing_the_java_memory_model_part_1.markdown) | ![Part 3]()
+[Article](https://www.ibm.com/developerworks/library/j-jtp03304/) | [Part 1](java_theory_and_practice_fixing_the_java_memory_model_part_1.markdown) | [Part 3]()
 
 --------------------------------------------------------------------------------
 
