@@ -335,8 +335,6 @@ The Java Memory Model requires fetch and store operations to be atomic, but for 
 
 #### Volatile variables
 
-Great reference: <http://tutorials.jenkov.com/java-concurrency/volatile.html>
-
 The Java language also provides an alternative, weaker form of synchronization, **volatile variables**, to ensure that updates to a variable are propagated predictably to other threads. When a field is declared volatile, the compiler and runtime are put on notice that this variable is shared and that operations on it should not be reordered with other memory operations. **Volatile variables are not cached in registers or in caches where they are hidden from other processors, so a read of a volatile variable always returns the most recent write by any thread**.
 
 Yet accessing a volatile variable performs no locking and so cannot cause the executing thread to block, making volatile variables a lighter-weight synchronization mechanism than synchronized. Relying too heavily on volatile variables for visibility is not recommended, as it is harder to understand than code that uses locking.
@@ -647,3 +645,9 @@ The most useful policies for using and sharing objects in a concurrent program a
 - **Shared read-only**. A shared read-only object can be accessed concurrently by multiple threads without additional synchronization, but cannot be modified by any thread. Shared read-only objects include immutable and effectively immutable objects.
 - **Shared thread-safe**. A thread-safe object performs synchronization internally, so multiple threads can freely access it through its public interface without further synchronization.
 - **Guarded**. A guarded object can be accessed only with a specific lock held. Guarded objects include those that are encapsulated within other thread-safe objects and published objects that are known to be guarded by a specific lock.
+
+### Articles
+
+- [Volatile](http://tutorials.jenkov.com/java-concurrency/volatile.html) by Jenkov
+- [Java theory and practice: Fixing the Java Memory Model, Part 1](/articles/java_theory_and_practice_fixing_the_java_memory_model_part_1.markdown)
+- [Java theory and practice: Fixing the Java Memory Model, Part 2](/articles/java_theory_and_practice_fixing_the_java_memory_model_part_2.markdown)
