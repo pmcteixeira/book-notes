@@ -6,9 +6,11 @@ by Derek Greer
 
 --------------------------------------------------------------------------------
 
+_Note: The article also addresses the Presentation-Abstraction-Control Pattern, but notes were not taken._
+
 ## 1\. Introduction
 
-The MVC, MVP, and PAC patterns are each intended to address the needs of interactive applications by separating the concerns assigned to different components within their respective architectures. While similar, each of these patterns differs slightly in their motivations and applicability to various design goals.
+The MVC, MVP, patterns are each intended to address the needs of interactive applications by separating the concerns assigned to different components within their respective architectures. While similar, each of these patterns differs slightly in their motivations and applicability to various design goals.
 
 ## 2\. The Model–View-Controller Pattern (Smalltalk-80)
 
