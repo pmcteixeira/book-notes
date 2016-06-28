@@ -181,3 +181,7 @@ Taligent Model-View-Presenter      | Same as above                              
 Dolphin Model-View-Presenter       | Same as above                                | Same as above                          | Presenter – presentation to domain connector; manages access to Model updates
 Passive View                       | N/A                                          | Same as above                          | Controller – manages presentation logic
 Supervising Controller             | N/A                                          | Same as above                          | Controller – assists with presentation logic
+
+### From other references:
+
+![](http://i.stack.imgur.com/t2kzD.png) ![](http://i.stack.imgur.com/adMfR.png)
