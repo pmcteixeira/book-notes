@@ -8,11 +8,7 @@ by Derek Greer
 
 _Note: The article also addresses the Presentation-Abstraction-Control Pattern, but notes were not taken._
 
-## 1\. Introduction
-
-The MVC, MVP, patterns are each intended to address the needs of interactive applications by separating the concerns assigned to different components within their respective architectures. While similar, each of these patterns differs slightly in their motivations and applicability to various design goals.
-
-## 2\. The Model–View-Controller Pattern (Smalltalk-80)
+## 1\. The Model–View-Controller Pattern (Smalltalk-80)
 
 The Model-View-Controller pattern is a methodology for separating the concerns of an application's domain, presentation, and user input into specialized components.
 
@@ -32,11 +28,11 @@ The View's responsibility can be seen as primarily dealing with output while the
 
 As data is entered by the user, the Controller intercepts the user's input and responds appropriately. Some user actions will result in interaction with the Model, such as changing data or invoking methods, while other user actions may result in visual changes to the View, such as the collapsing of menus, the highlighting of scrollbars, etc.
 
-### 2.4 MVC Misconceptions
+### 1.1 MVC Misconceptions
 
 One common misconception about the relationship between the MVC components is that the purpose of the Controller is to separate the View from the Model. While the MVC pattern does decouple the application's domain layer from presentation concerns, this is achieved through the Observer Pattern, not through the Controller. The Controller was conceived as a mediator between the end user and the application, not between the View and the Model.
 
-### 2.5 Pattern Variations and Derivatives: The Model-View-Controller Pattern for Web Applications
+### 1.2 Pattern Variations and Derivatives: The Model-View-Controller Pattern for Web Applications
 
 The classic Model-View-Controller pattern is largely no longer used today in its original form, though it has given rise to a number of variations adapted to newer development platforms.
 
@@ -60,13 +56,13 @@ Due to the fact that Web applications are stateless, Views are rendered anew upo
 
 Depending upon the implementation, the View then renders the output stream or is parsed by a separate processor to render the output stream based upon the view state made available by the Controller.
 
-## 3\. The Model-View-Presenter Pattern
+## 2\. The Model-View-Presenter Pattern
 
 The Model-View-Presenter pattern is a variation on the Model-View-Controller pattern, and similarly separates the concerns of an application's domain, presentation, and user input into specialized components.
 
 The definition and distinctive characteristics of this pattern are not easily summarized due to the fact that there are several patterns commonly accepted under the name "Model-View-Presenter" which do not share the same distinctive qualities over their MVC predecessor. For this reason, this article will discuss the original Model-View-Presenter pattern along with some of its more popular variations and derivatives.
 
-### 3.1 The Taligent Model-View-Presenter Pattern
+### 2.1 The Taligent Model-View-Presenter Pattern
 
 The following diagram depicts the structure of the Taligent Model-View-Presenter pattern:
 
@@ -102,7 +98,7 @@ The Presenter acts as an overall manager for a particular subsystem within an ap
 
 Interactors are somewhat analogous to Smalltalk-80 Controllers. They are the components which respond to user events and in turn call the appropriate Commands and Selections of the Model.
 
-### 3.2 The Dolphin Smalltalk Model-View-Presenter Pattern
+### 2.2 The Dolphin Smalltalk Model-View-Presenter Pattern
 
 The Dolphin Smalltalk team simplified the Taligent MVP pattern by eliminating Interactors, Commands, and Selections from the pattern's formal description. This in turn simplified the role of the Presenter, changing it from a subsystem controller to a component which mediated updates to the Model on behalf of the View.
 
@@ -132,13 +128,13 @@ Within the Dolphin Smalltalk MVP pattern, the role of intercepting the user's in
 
 So then, while the Dolphin Smalltalk MVP and the Smalltalk-80 MVC patterns may appear similar on the surface, Presenters and Controllers differ in the purposes they were conceived to address.
 
-## 4\. The Fowler Patterns
+## 3\. The Fowler Patterns
 
 During his research and preparation of material on presentation layer patterns in 2006 for an upcoming book, Martin Fowler decided that the treatment given to the design intensions behind today's use of the Model-View-Presenter pattern be divided under the names [Supervising Controller](http://martinfowler.com/eaaDev/SupervisingPresenter.html) and [Passive View](http://martinfowler.com/eaaDev/PassiveScreen.html). This distinction was made around the level of responsibility the Presenter/Controller component of the pattern takes on for presentation layer logic.
 
 However, this distinction renders patterns which describe solutions not specific to the Model-View-Presenter pattern. While discussed here within the context of the Model-View-Presenter pattern, these patterns are best understood as facilitating patterns (as with the Observer Pattern) rather than variations of the Model-View-Presenter pattern.
 
-### 4.1 The Supervising Controller Pattern
+### 3.1 The Supervising Controller Pattern
 
 The Supervising Controller pattern separates an application's concerns of presentation and presentation logic into the specialized components of View and Controller, with the View assigned the responsibility of simple presentation logic and the Controller assigned the responsibilities of responding to user input and handling complex presentation logic.
 
@@ -156,7 +152,7 @@ For simple presentation logic, the View uses data binding techniques and the Obs
 
 Complex presentation logic, particularly any logic one desires to unit test, is delegated to the Presenter.
 
-### 4.2 The Passive View Pattern
+### 3.2 The Passive View Pattern
 
 The Passive View pattern separates an application's concerns of presentation and presentation logic into the specialized components of View and Controller, with the Controller taking on the responsibility for responding to user events and presentation logic.
 
@@ -172,7 +168,7 @@ Within the Passive View pattern, Views delegate user events to the Controller wh
 
 Controllers within this pattern take on a mediating role between the Views and domain logic strategy used. **This formalizes a role often erroneously ascribed to Controllers within the Model-View-Controller pattern.**
 
-## Pattern Comparisons
+## 4\. Pattern Comparisons
 
 Pattern                            | Domain                                       | Presentation                           | Control
 :--------------------------------- | :------------------------------------------- | :------------------------------------- | :----------------------------------------------------------------------------
