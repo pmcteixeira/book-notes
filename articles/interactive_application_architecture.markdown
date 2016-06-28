@@ -18,11 +18,11 @@ The Model-View-Controller pattern is a methodology for separating the concerns o
 
 ![](http://aspiringcraftsman.com/wp-content/uploads/2010/02/MVC1.png)
 
-The **Model** refers to the data and business functionality of the application. This is often represented by a Domain Model where objects are used to model real world entities and processes by representing their properties and behavior.
+- The **Model** refers to the data and business functionality of the application. This is often represented by a Domain Model where objects are used to model real world entities and processes by representing their properties and behavior.
 
-The **View** is the visual representation of the Model and is comprised of the screens and widgets used within an application.
+- The **View** is the visual representation of the Model and is comprised of the screens and widgets used within an application.
 
-The **Controller** is a component which responds to user input such as data entry and commands issued from a keyboard or mouse. Its responsibility is to act as a bridge between the human and the application, allowing the user to interact with the screen and data.
+- The **Controller** is a component which responds to user input such as data entry and commands issued from a keyboard or mouse. Its responsibility is to act as a bridge between the human and the application, allowing the user to interact with the screen and data.
 
 Within the MVC pattern, a Model-View-Controller triad exists for each object intended to be manipulated by a user. The Model contains no direct link to the View or Controller, and may be modified by the View, Controller, or other objects with the system. **When notification to the View and Controller are necessary, the Model uses the [Observer Pattern](https://en.wikipedia.org/wiki/Observer_pattern) to send a message notifying observing objects that its data has changed.**
 
@@ -44,13 +44,13 @@ Similar to the original pattern, the Web-based MVC pattern aids in separating th
 
 ![](http://aspiringcraftsman.com/wp-content/uploads/2010/02/WebMVC.png)
 
-A **Front Controller** is often introduced to handle common infrastructure concerns as well as dispatching requests to individual Controllers.
+- A **Front Controller** is often introduced to handle common infrastructure concerns as well as dispatching requests to individual Controllers.
 
-The **Model** encapsulates the data and business functionality of the application and is typically represented by a Domain Model.
+- The **Model** encapsulates the data and business functionality of the application and is typically represented by a Domain Model.
 
-In Web applications, the **View** is the content (generally HTML and associated client-side script) returned to the Web client. Depending on the implementation, Views may be text-based templates which are rendered by a view processor, or they may be objects compiled from templates which encapsulate the content to be rendered.
+- In Web applications, the **View** is the content (generally HTML and associated client-side script) returned to the Web client. Depending on the implementation, Views may be text-based templates which are rendered by a view processor, or they may be objects compiled from templates which encapsulate the content to be rendered.
 
-The **Controller** is a component which responds to user input. What differs is that rather than receiving signals directly from hardware devices such as the keyboard, mouse, etc., Web-based MVC Controllers process delegated HTTP requests (or information derived from the request depending upon the specific implementation).
+- The **Controller** is a component which responds to user input. What differs is that rather than receiving signals directly from hardware devices such as the keyboard, mouse, etc., Web-based MVC Controllers process delegated HTTP requests (or information derived from the request depending upon the specific implementation).
 
 Upon receiving an HTTP request, the Front Controller executes any common behavior and then uses information derived from the request to locate the concerned Controller. After a Controller is located, the request is delegated for further handling.
 
@@ -72,17 +72,17 @@ The following diagram depicts the structure of the Taligent Model-View-Presenter
 
 ![](http://aspiringcraftsman.com/wp-content/uploads/2010/02/TaligentMVP.png)
 
-The **Model** refers to the data and business functionality of the application.
+- The **Model** refers to the data and business functionality of the application.
 
-**Selections** are components which specify what portion of the data within the Model is to be operated upon. Examples would be selections which define rows, columns, or individual elements which meet specific criteria.
+- **Selections** are components which specify what portion of the data within the Model is to be operated upon. Examples would be selections which define rows, columns, or individual elements which meet specific criteria.
 
-**Commands** are components which define the operations which can be performed on the data. Examples might be deleting, printing, or saving data within the Model.
+- **Commands** are components which define the operations which can be performed on the data. Examples might be deleting, printing, or saving data within the Model.
 
-The **View** is the visual representation of the Model and is comprised of the screens and widgets used within an application.
+- The **View** is the visual representation of the Model and is comprised of the screens and widgets used within an application.
 
-**Interactors** are components which address how user events are mapped onto operations performed on the Model, such as mouse movements, keyboard input, and the selection of checkboxes or menu items. (_pmcteixeira: think of Use Cases_)
+- **Interactors** are components which address how user events are mapped onto operations performed on the Model, such as mouse movements, keyboard input, and the selection of checkboxes or menu items. (_pmcteixeira: think of Use Cases_)
 
-The **Presenter** is a component which orchestrates the overall interaction of the other components within the application. Its roles include the creation of the appropriate Models, Selections, Commands, Views, and Interactors, and directing the workflow within the application.
+- The **Presenter** is a component which orchestrates the overall interaction of the other components within the application. Its roles include the creation of the appropriate Models, Selections, Commands, Views, and Interactors, and directing the workflow within the application.
 
 The Model refers to the data and business functionality of the application.
 
@@ -108,11 +108,11 @@ The Dolphin Smalltalk team simplified the Taligent MVP pattern by eliminating In
 
 ![](http://aspiringcraftsman.com/wp-content/uploads/2010/02/MVP.png)
 
-The **Model** refers to the data and business functionality of the application.
+- The **Model** refers to the data and business functionality of the application.
 
-The **View** is the visual representation of the Model and is comprised of the screens and widgets used within an application.
+- The **View** is the visual representation of the Model and is comprised of the screens and widgets used within an application.
 
-The **Presenter** is a component which contains the presentation logic which interacts with the Model.
+- The **Presenter** is a component which contains the presentation logic which interacts with the Model.
 
 Within the Dolphin MVP pattern, Views intercept the initial user events generated by the operating system. This choice was primarily the result of development on the Microsoft Windows operating system whose native widgets already handled most controller functionality. In a few cases the View responded to user events by updating the Model directly, but in most cases user events were delegated to the Presenter. **Implied by the Dolphin Smalltalk description is that Views only delegated events when updates to the Model were required, thus leaving all other presentation logic within the View.**
 
@@ -146,9 +146,9 @@ The Supervising Controller pattern separates an application's concerns of presen
 
 _Note: The model is shown with reduced emphasis to denote its peripheral role to the pattern description._
 
-The **View** is the visual components used within an application such as screens and widgets.
+- The **View** is the visual components used within an application such as screens and widgets.
 
-The **Controller** is a component which processes user events and the complex presentation logic within an application.
+- The **Controller** is a component which processes user events and the complex presentation logic within an application.
 
 Within the Supervising Controller pattern, Views delegate user events to the Controller which in turn interacts with the business domain of the application.
 
@@ -164,9 +164,9 @@ The Passive View pattern separates an application's concerns of presentation and
 
 _Note: The model is shown with reduced emphasis to denote its peripheral role to the pattern description._
 
-The **View** is the visual components used within an application such screens and widgets.
+- The **View** is the visual components used within an application such screens and widgets.
 
-The **Controller** is a component which processes user events and the presentation logic within an application.
+- The **Controller** is a component which processes user events and the presentation logic within an application.
 
 Within the Passive View pattern, Views delegate user events to the Controller which in turn interacts with the business domain of the application and/or updates the View. The View maintains no link to the domain layer and relies solely on the Controller for all presentation related logic.
 
