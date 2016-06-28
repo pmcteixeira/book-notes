@@ -8,6 +8,7 @@ This is a note collection of things that I've read, inspired by [30 second habit
 
 - [Java theory and practice: Fixing the Java Memory Model, Part 1](/articles/java_theory_and_practice_fixing_the_java_memory_model_part_1.markdown) - Brian Goetz
 - [Java theory and practice: Fixing the Java Memory Model, Part 2](/articles/java_theory_and_practice_fixing_the_java_memory_model_part_2.markdown) - Brian Goetz
+- [Interactive Application Architecture](/articles/interactive_application_architecture.markdown) - Derek Greer
 
 ## Books
 
