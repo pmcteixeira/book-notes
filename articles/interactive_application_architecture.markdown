@@ -134,7 +134,7 @@ So then, while the Dolphin Smalltalk MVP and the Smalltalk-80 MVC patterns may a
 
 ## 4\. The Fowler Patterns
 
-During his research and preparation of material on presentation layer patterns in 2006 for an upcoming book, Martin Fowler decided that the treatment given to the design intensions behind today's use of the Model-View-Presenter pattern be divided under the names **Supervising Controller** and **Passive View**. This distinction was made around the level of responsibility the Presenter/Controller component of the pattern takes on for presentation layer logic.
+During his research and preparation of material on presentation layer patterns in 2006 for an upcoming book, Martin Fowler decided that the treatment given to the design intensions behind today's use of the Model-View-Presenter pattern be divided under the names [Supervising Controller](http://martinfowler.com/eaaDev/SupervisingPresenter.html) and [Passive View](http://martinfowler.com/eaaDev/PassiveScreen.html). This distinction was made around the level of responsibility the Presenter/Controller component of the pattern takes on for presentation layer logic.
 
 However, this distinction renders patterns which describe solutions not specific to the Model-View-Presenter pattern. While discussed here within the context of the Model-View-Presenter pattern, these patterns are best understood as facilitating patterns (as with the Observer Pattern) rather than variations of the Model-View-Presenter pattern.
 
