@@ -26,7 +26,7 @@ The View and Controller components work together to allow the user to view and i
 
 The View's responsibility can be seen as primarily dealing with output while the Controller's responsibility can be seen as primarily dealing with input. It is the shared responsibility of both the View and the Controller to interact with the Model. The Controller interacts with the Model as the result of responding to user input, while the View interacts with the Model as the result of updates to itself. Both may access and modify data within the Model as needed.
 
-As data is entered by the user, the Controller intercepts the user's input and responds appropriately. Some user actions will result in interaction with the Model, such as changing data or invoking methods, while other user actions may result in visual changes to the View, such as the collapsing of menus, the highlighting of scrollbars, etc.
+_As data is entered by the user, the Controller intercepts the user's input and responds appropriately. Some user actions will result in interaction with the Model, such as changing data or invoking methods, while other user actions may result in visual changes to the View, such as the collapsing of menus, the highlighting of scrollbars, etc._
 
 ### 1.1 MVC Misconceptions
 

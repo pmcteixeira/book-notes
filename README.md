@@ -13,3 +13,9 @@ This is a note collection of things that I've read, inspired by [30 second habit
 ## Books
 
 - [HTTP: The Definitive Guide](/books/http-the-definitive-guide/http-the-definitive-guide.markdown)
+
+## Links
+
+- [The Clean Architecture](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html)
+- [A detailed guide on developing Android apps using the Clean Architecture pattern](https://medium.com/@dmilicic/a-detailed-guide-on-developing-android-apps-using-the-clean-architecture-pattern-d38d71e94029#.9kpyvxoaw)
+- [Fernando Cejas Android-CleanArchitecture samples](https://github.com/android10/Android-CleanArchitecture)
