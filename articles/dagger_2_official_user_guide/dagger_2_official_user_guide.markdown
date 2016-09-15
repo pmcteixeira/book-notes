@@ -140,7 +140,7 @@ CoffeeShop coffeeShop = DaggerCoffeeShop.builder()
     .build();
 ```
 
-Note: If your @Component is not a top-level type, the generated component's name will be include its enclosing types' names, joined with an underscore. For example, this code:
+**NOTE:** If your `@Component` is not a top-level type, the generated component's name will be include its enclosing types' names, joined with an underscore. For example, this code:
 
 ```java
 class Foo {
@@ -165,3 +165,34 @@ public class CoffeeApp {
     }
 }
 ```
+
+## 5\. Singletons and Scoped Bindings
+
+Annotate an @Provides method or injectable class with `@Singleton`. The graph will use a single instance of the value for all of its clients.
+
+```java
+@Provides @Singleton static Heater provideHeater() {
+  return new ElectricHeater();
+}
+```
+
+The `@Singleton` annotation on an injectable class also serves as documentation. It reminds potential maintainers that this class may be shared by multiple threads.
+
+```java
+@Singleton
+class CoffeeMaker {
+  ...
+}
+```
+
+Since Dagger 2 associates scoped instances in the graph with instances of component implementations, the components themselves need to declare which scope they intend to represent. For example, it wouldn't make any sense to have a `@Singleton` binding and a `@RequestScoped` binding in the same component because those scopes have different lifecycles and thus must live in components with different lifecycles. To declare that a component is associated with a given scope, simply apply the scope annotation to the component interface.
+
+```java
+@Component(modules = DripCoffeeModule.class)
+@Singleton
+interface CoffeeShop {
+  CoffeeMaker maker();
+}
+```
+
+Components may have multiple scope annotations applied. This declares that they are all aliases to the same scope, and so that component may include scoped bindings with any of the scopes it declares.
