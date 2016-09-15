@@ -47,3 +47,5 @@ class CoffeeMaker {
         }
     }
 ```
+
+![DI in pictures](assets/di_in_pictures.png)
