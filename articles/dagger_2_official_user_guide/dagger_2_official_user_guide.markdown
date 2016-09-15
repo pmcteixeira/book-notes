@@ -196,3 +196,53 @@ interface CoffeeShop {
 ```
 
 Components may have multiple scope annotations applied. This declares that they are all aliases to the same scope, and so that component may include scoped bindings with any of the scopes it declares.
+
+## 6\. Reusable scope
+
+Sometimes you want to limit the number of times an `@Inject`-constructed class is instantiated or a `@Provides` method is called, but you don't need to guarantee that the exact same instance is used during the lifetime of any particular component or subcomponent. This can be useful in environments such as Android, where allocations can be expensive.
+
+For these bindings, you can apply `@Reusable` scope. `@Reusable`-scoped bindings, unlike other scopes, are not associated with any single component; instead, each component that actually uses the binding will cache the returned or instantiated object.
+
+That means that if you install a module with a `@Reusable` binding in a component, but only a subcomponent actually uses the binding, then only that subcomponent will cache the binding's object. If two subcomponents that do not share an ancestor each use the binding, each of them will cache its own object. If a component's ancestor has already cached the object, the subcomponent will reuse it.
+
+**There is no guarantee that the component will call the binding only once**, so applying `@Reusable` to bindings that return mutable objects, or objects where it's important to refer to the same instance, is dangerous. It's safe to use @Reusable for immutable objects that you would leave unscoped if you didn't care how many times they were allocated.
+
+```java
+@Reusable // It doesn't matter how many scoopers we use, but don't waste them.
+class CoffeeScooper {
+  @Inject CoffeeScooper() {}
+}
+
+@Module
+class CashRegisterModule {
+  @Provides
+  @Reusable // DON'T DO THIS! You do care which register you put your cash in.
+            // Use a specific scope instead.
+  static CashRegister badIdeaCashRegister() {
+    return new CashRegister();
+  }
+}
+
+@Reusable // DON'T DO THIS! You really do want a new filter each time, so this
+          // should be unscoped.
+class CoffeeFilter {
+  @Inject CoffeeFilter() {}
+}
+```
+
+## 7\. Lazy injections
+
+Sometimes you need an object to be instantiated lazily. For any binding `T`, you can create a `Lazy<T>` which defers instantiation until the first call to `Lazy<T>`'s `get()` method. If `T` is a singleton, then `Lazy<T>` will be the same instance for all injections within the Object Graph. Otherwise, each injection site will get its own `Lazy<T>` instance. Regardless, subsequent calls to any given instance of `Lazy<T>` will return the same underlying instance of T.
+
+```java
+class GridingCoffeeMaker {
+  @Inject Lazy<Grinder> lazyGrinder;
+
+  public void brew() {
+    while (needsGrinding()) {
+      // Grinder created once on first call to .get() and cached.
+      lazyGrinder.get().grind();
+    }
+  }
+}
+```
