@@ -343,7 +343,7 @@ public interface ApiComponent {
 }
 ```
 
-If we added `@Singleton` annotation to `TwitterComponent` the build would also fail. Currently, scopes are limited to a single component. And because we cannot have the `@Singleton` annotation in that component, we also cannot have it on the modules which that component uses. Components without scope annotations are called _unscoped_ components. This will also make the module instances to be created more than once if called multiple times.
+If we added `@Singleton` annotation to `TwitterComponent` the build would also fail. **Currently, scopes are limited to a single component**. And because we cannot have the `@Singleton` annotation in that component, we also cannot have it on the modules which that component uses. Components without scope annotations are called _unscoped_ components. This will also make the module instances to be created more than once if called multiple times.
 
 So now that components are broken apart, we create the `TwitterComponent` by adding reference to `ApiComponent` in its builder.
 
