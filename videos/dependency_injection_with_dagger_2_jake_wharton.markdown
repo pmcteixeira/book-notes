@@ -152,7 +152,8 @@ public class TwitterApplication {
   private final Tweeter tweeter;
   private final Timeline timeline;
 
-  @Injectpublic TwitterApplication(Tweeter tweeter, Timeline timeline) {
+  @Inject
+  public TwitterApplication(Tweeter tweeter, Timeline timeline) {
     this.tweeter = tweeter;
     this.timeline = timeline;
   }
@@ -179,5 +180,166 @@ public class TwitterApi {
     Request request = // TODO build POST request ...
     client.newCall(request).execute();
   }
+}
+```
+
+#### Method injection
+
+- `@Inject` on methods
+
+Method injection allows methods to be invoked with dependencies. You place `@Inject` on any number of methods. Similar to constructor invocation, the parameters become the dependencies. And, this happens **after the object constructor** has completed.
+
+There's really only one good case for this, and that's when you need to pass an instance of yourself to a dependency. You don't want to do this inside the constructor, so we do this inside the method injection, like so:
+
+```java
+public class TwitterApplication {
+
+  //...
+
+  @Injectpublic void enableStreaming(Streaming streaming) {
+    streaming.register(this);
+  }
+}
+```
+
+The `Streaming` wrapper is injected then `TwitterApplication` instance is registered as a listener.
+
+#### Field Injection
+
+- `@Inject` on fields for dependencies
+- Field may not be private of final.
+- Injection happens after the object is fully instantiated.
+
+This is very useful for Android where the Activity object is created by the system. Field injection happens after constructor injection but before method injection.
+
+An interesting thing about field and method injection is that the object usually has to be aware that field injection is happening, simply because that after the constructor has completed there still might be unresolved dependencies. Same for method injection.
+
+```java
+public class TwitterApplication {
+  @Inject Tweeter tweeter;
+  @Inject Timeline timeline;
+
+  // ...
+}
+```
+
+### Components
+
+- Bridge between modules and injection.
+- The injector.
+- Implementation of scopes.
+
+We provide objects with modules and request injection with `@Inject`, the mechanism to bridge the two together is called _components_. The Component is just an interface and it has the `@Component` annotation on top of it. In our annotation we list the modules which make up that component so both `NetworkModule` and `TwitterModule` are contributing.
+
+Components are aware of the Scope of dependencies. Since all modules in this component are singletons, we can also annotate the component with `@Singleton`.
+
+The way to expose types out of the component is simply by writing abstract method declarations.
+
+```java
+@Singleton
+@Component(modules = {
+  NetworkModule.class,
+  TwitterModule.class,
+})
+public interface TwitterComponent {
+  Tweeter tweeter();
+  Timeline timeline();
+}
+```
+
+Dagger generates an implementation of this interface.
+
+```java
+TwitterComponent component = Dagger_TwitterComponent.builder()
+  .networkModule(new NetworkModule())
+  .twitterModule(new TwitterModule("Jake Wharton"))
+  .build();
+
+Tweeter tweeter = component.tweeter();
+tweeter.tweet("Hello, #Devoxx 2014!");
+
+Timeline timeline = component.timeline();
+timeline.loadMore(20);
+for (Tweet tweet : timeline.get()) {
+  System.out.println(tweet);
+}
+```
+
+The `NetworkModule` has a implicit default constructor. So we can just let Dagger create that module ourselves and we only have to pass in modules that require external state.
+
+The TwitterApplication because it has `@Inject` constructor it is implicitly available to be injected downstream. And that also means it's available to be exposed by a component. So this is the pattern that you'll more often see in Java Desktop, where there is a single entry point to the application.
+
+_When we only have field injection and/or method injection, we can actually just put a method on the component which accepts an instance of that type and it will perform field or method injection on it._ We construct the component as we did before but now we create our application ourselves, passes to Dagger, Dagger is going to set the fields on that object and then ultimately we can run our application.
+
+```java
+@Singleton
+@Component(modules = {
+  NetworkModule.class,
+  TwitterModule.class
+})
+interface TwitterComponent {
+  void injectActivity(TwitterActivity activity);
+}
+```
+
+```java
+TwitterComponent component = Dagger_TwitterComponent.builder().
+  twitterModule(new TwitterModule("JakeWharton"))
+  .build();
+
+TwitterActivity activity = // Android creates instance...
+component.injectActivity(activity);
+```
+
+There's actually a very cool property that you can turn this into a method that actually return the same instance. That allows to have a kind of builder pattern when you invoke the component and immediately get back the injected type.
+
+```java
+@Singleton
+@Component(modules = {
+  NetworkModule.class,
+  TwitterModule.class
+})
+interface TwitterComponent {
+  TwitterActivity injectActivity(TwitterActivity activity);
+}
+```
+
+#### Implementation of scopes
+
+Components are the way we get concrete scopes in Dagger 2\. To illustrate this we'll break up our component. We have two modules, and each module kind have different responsibilities.
+
+```java
+@Singleton
+@Component(modules = NetworkModule.class)
+public interface ApiComponent {
+
+}
+
+
+@Component(modules = TwitterModule.class)
+public interface TwitterComponent {
+  TwitterApplication app();
+}
+```
+
+What we're going to do is to add another field onto the component which explicitly says a dependency.
+
+```java
+@Component(
+  dependencies = ApiComponent.class,
+  modules = TwitterModule.class
+)
+public interface TwitterComponent {
+  TwitterApplication app();
+}
+```
+
+So we have a dependency on the `ApiComponent`. The `TwitterComponent` can no longer be created unless we have an instance of the `ApiComponent`. Now an interesting property of how component work is that this will actually end up failing if I tried to build it. And that's because in `TwitterModule` both the `Tweeter` and the `Timeline` require an instance of `TwitterApi` class. **Components do not expose any types from their modules unless you explicitly make them available**. So that means I have to add a method saying that the `TwitterApi` instance is going to be exposed from the `ApiComponent` and now the `TwitterComponent` can use it to create the TwitterApplication.
+
+```java
+@Singleton
+@Component(modules = NetworkModule.class)
+public interface ApiComponent {
+  TwitterApi api();
 }
 ```
