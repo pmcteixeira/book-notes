@@ -267,7 +267,7 @@ for (Tweet tweet : timeline.get()) {
 
 The `NetworkModule` has a implicit default constructor. So we can just let Dagger create that module ourselves and we only have to pass in modules that require external state.
 
-The TwitterApplication because it has `@Inject` constructor it is implicitly available to be injected downstream. And that also means it's available to be exposed by a component. So this is the pattern that you'll more often see in Java Desktop, where there is a single entry point to the application.
+The TwitterApplication has `@Inject` constructor and it is implicitly available to be injected downstream. That also means it's available to be exposed by a component.
 
 _When we only have field injection and/or method injection, we can actually just put a method on the component which accepts an instance of that type and it will perform field or method injection on it._ We construct the component as we did before but now we create our application ourselves, passes to Dagger, Dagger is going to set the fields on that object and then ultimately we can run our application.
 
@@ -306,7 +306,7 @@ interface TwitterComponent {
 
 #### Implementation of scopes
 
-Components are the way we get concrete scopes in Dagger 2\. To illustrate this we'll break up our component. We have two modules, and each module kind have different responsibilities.
+Components are the way we get concrete scopes in Dagger 2\. To illustrate this we'll break up our component. We have two modules, and each module have different responsibilities.
 
 ```java
 @Singleton
@@ -314,7 +314,6 @@ Components are the way we get concrete scopes in Dagger 2\. To illustrate this w
 public interface ApiComponent {
 
 }
-
 
 @Component(modules = TwitterModule.class)
 public interface TwitterComponent {
@@ -325,6 +324,7 @@ public interface TwitterComponent {
 What we're going to do is to add another field onto the component which explicitly says a dependency.
 
 ```java
+@Singleton
 @Component(
   dependencies = ApiComponent.class,
   modules = TwitterModule.class
@@ -337,9 +337,26 @@ public interface TwitterComponent {
 So we have a dependency on the `ApiComponent`. The `TwitterComponent` can no longer be created unless we have an instance of the `ApiComponent`. Now an interesting property of how component work is that this will actually end up failing if I tried to build it. And that's because in `TwitterModule` both the `Tweeter` and the `Timeline` require an instance of `TwitterApi` class. **Components do not expose any types from their modules unless you explicitly make them available**. So that means I have to add a method saying that the `TwitterApi` instance is going to be exposed from the `ApiComponent` and now the `TwitterComponent` can use it to create the TwitterApplication.
 
 ```java
-@Singleton
 @Component(modules = NetworkModule.class)
 public interface ApiComponent {
   TwitterApi api();
 }
 ```
+
+If we added `@Singleton` annotation to `TwitterComponent` the build would also fail. Currently, scopes are limited to a single component. And because we cannot have the `@Singleton` annotation in that component, we also cannot have it on the modules which that component uses. Components without scope annotations are called _unscoped_ components. This will also make the module instances to be created more than once if called multiple times.
+
+So now that components are broken apart, we create the `TwitterComponent` by adding reference to `ApiComponent` in its builder.
+
+```java
+// create() is used when every module can be implicitly created
+ApiComponent apiComponent = Dagger_ApiComponent.create();
+
+TwitterComponent twitterComponent = Dagger_TwitterComponent.builder()
+  .apiComponent(apiComponent)
+  .twitterModule(new TwitterModule("Jake Wharton"))
+  .build();
+
+twitterComponent.app().run();
+```
+
+### Scope Annotations
