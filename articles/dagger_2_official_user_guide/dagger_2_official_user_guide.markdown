@@ -49,7 +49,7 @@ class CoffeeMaker {
 
 ![DI in pictures](assets/di_in_pictures.png)
 
-## 1\. Declaring Dependencies
+## 2\. Declaring Dependencies
 
 Use `@Inject` to annotate the constructor that Dagger should use to create instances of a class. When a new instance is requested, Dagger will obtain the required parameters values and invoke this constructor.
 
@@ -232,7 +232,7 @@ class CoffeeFilter {
 
 ## 7\. Lazy injections
 
-Sometimes you need an object to be instantiated lazily. For any binding `T`, you can create a `Lazy<T>` which defers instantiation until the first call to `Lazy<T>`'s `get()` method. If `T` is a singleton, then `Lazy<T>` will be the same instance for all injections within the Object Graph. Otherwise, each injection site will get its own `Lazy<T>` instance. Regardless, subsequent calls to any given instance of `Lazy<T>` will return the same underlying instance of T.
+Sometimes you need an object to be instantiated lazily. For any binding `T`, you can create a `Lazy<T>` which defers instantiation until the first call to `Lazy<T>`'s `get()` method. If `T` is a singleton, then `Lazy<T>` will be the same instance for all injections within the `ObjectGraph`. Otherwise, each injection site will get its own `Lazy<T>` instance. Regardless, subsequent calls to any given instance of `Lazy<T>` will return the same underlying instance of T.
 
 ```java
 class GridingCoffeeMaker {
@@ -246,3 +246,64 @@ class GridingCoffeeMaker {
   }
 }
 ```
+
+## 8\. Provider injections
+
+Sometimes you need multiple instances to be returned instead of just injecting a single value. While you have several options (Factories, Builders, etc.), one option is to inject a `Provider<T>` instead of just `T`. A `Provider<T>` invokes the binding logic for `T` each time `.get()` is called. If that binding logic is an `@Inject` constructor, a new instance will be created, but a `@Provides` method has no such guarantee.
+
+```java
+class BigCoffeeMaker {
+  @Inject Provider<Filter> filterProvider;
+
+  public void brew(int numberOfPots) {
+  ...
+    for (int p = 0; p < numberOfPots; p++) {
+      maker.addFilter(filterProvider.get()); //new filter every time.
+      maker.addCoffee(...);
+      maker.percolate();
+      ...
+    }
+  }
+}
+```
+
+## 9 . Qualifiers
+
+Sometimes the type alone is insufficient to identify a dependency. For example, a sophisticated coffee maker app may want separate heaters for the water and the hot plate.
+
+In this case, we add a qualifier annotation. This is any annotation that itself has a `@Qualifier` annotation. Here's the declaration of `@Named`, a qualifier annotation included in javax.inject:
+
+```java
+@Qualifier
+@Documented
+@Retention(RUNTIME)
+public @interface Named {
+  String value() default "";
+}
+```
+
+You can create your own qualifier annotations, or just use `@Named`. Apply qualifiers by annotating the field or parameter of interest. The type and qualifier annotation will both be used to identify the dependency.
+
+```java
+class ExpensiveCoffeeMaker {
+  @Inject @Named("water") Heater waterHeater;
+  @Inject @Named("hot plate") Heater hotPlateHeater;
+  ...
+}
+```
+
+Supply qualified values by annotating the corresponding @Provides method.
+
+```java
+@Provides @Named("hot plate") static Heater provideHotPlateHeater() {
+  return new ElectricHeater(70);
+}
+```
+
+```java
+@Provides @Named("water") static Heater provideWaterHeater() {
+  return new ElectricHeater(93);
+}
+```
+
+Dependencies may not have multiple qualifier annotations.
