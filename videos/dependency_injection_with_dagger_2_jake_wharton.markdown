@@ -66,14 +66,14 @@ for (Tweet tweet : timeline.get()) {
 }
 ```
 
-By having `Tweeter` and `Timeline` taking the same `TwitterApi` instance, they reuse resources and neither are responsible for creating or configuring. However, while this ends up being a lot nicer for the library code, we've now polluted the calling code, as it is now responsible for manually creating all the dependencies and performing the injection. If all I want to do is tweet and read my timeline, I don't want to be burdened by having to write this boilerplate code.
+`Tweeter` and `Timeline` take the same `TwitterApi` instance -- reusing resources. Neither are responsible for creating or configuring it. However, while this ends up being a lot nicer for the library code, we end up polluting the calling code -- as it is now responsible for manually creating all the dependencies and performing the injection. If all I want to do is tweet and read my timeline, I don't want to be burdened by having to write this boilerplate code.
 
 ## 2\. Dagger API
 
 ### Overview
 
 - `@Module` + `@Provides`: mechanism for providing dependencies.
-- `@Inject`: mechanism for requesting dependencies.
+- `@Inject`: mechanism for requesting dependencies (also provides dependencies when applied to class constructor).
 - `@Component`: bridge between modules and injections.
 
 ### Providing Dependencies
@@ -100,7 +100,7 @@ public class NetworkModule {
 }
 ```
 
-When Dagger is parsing the module, internally it's creating a graph of how these dependencies relate to each other. The module has two methods and Dagger is going to look at the return type of those methods and associate them (type -> method). The `provideTwitterApi` method takes a `OkHttpClient` object as a parameter, and Dagger also creates an association (method -> type).
+When Dagger is parsing the module, internally it's creating a graph of how these dependencies relate to each other. The module has two methods and Dagger is going to look at the return type of those methods and will associate the return type to its provider method. The `provideTwitterApi` method takes a `OkHttpClient` object as a parameter, and Dagger also creates an association provider method to dependent type.
 
 Modules are designed to be partitions and then composed back together to perform a complete graph. Having a single module listing hundreds of dependencies is _not_ intended. Modules should be structured the way it makes sense semantically, given how the application and libraries are structured.
 
@@ -129,7 +129,7 @@ public class TwitterModule {
 
 You'll notice that both of them take the `TwitterApi` -- _which is provided in the separate module_ -- and both are using the user field which comes in through the constructor. Once the `TwitterModule` is added to the graph, Dagger will create an association between the provider methods and the `TwitterApi` type found in `NetworkModule`. This way, when Dagger uses for example the `provideTweeter` method, it follows the transitive dependencies, and resolve them first. It will find a `TwitterApi` first and then follow in turn its transitive dependencies, ultimately until it gets to the very leaf nodes of the graph which no longer require dependencies to instantiate.
 
-Given that `TwitterApi` is annotated with `@Singleton`, once Dagger uses `provideTimeline` method it will reuse the retained instance which was created for `provideTweeter`.
+Given that `TwitterApi` is annotated with `@Singleton`, once Dagger uses `provideTimeline` method it will reuse the retained instance which was created using `provideTweeter`.
 
 ### Requesting Dependencies
 
@@ -162,7 +162,7 @@ public class TwitterApplication {
 }
 ```
 
-By having `@Inject` annotated in constructor, Dagger knows how to create instances of that object and it's implicitly made available for downstream injection. What this means is that if I have another class that wants to inject that `TwitterApplication` it can do so.
+By having `@Inject` annotated in constructor, Dagger also knows how to create instances of that object and it's implicitly made available for downstream injection. What this means is that if I have another class that wants to inject that `TwitterApplication` it can do so.
 
 For that reason, we can eliminate for example the `TwitterApi` provides method from `NetworkModule` if we add an `@Inject` annotation to its constructor. In the module, the `TwitterApi` was a singleton, and solely when you have a `@Inject` constructor, Dagger is going to invoke the constructor every time somebody request the `TwitterApi`, ultimately ending with multiple instances of this class. In order to maintain it as a Singleton, `TwitterApi` should be annotated with the `@Singleton` annotation in the class declaration:
 
@@ -196,7 +196,8 @@ public class TwitterApplication {
 
   //...
 
-  @Injectpublic void enableStreaming(Streaming streaming) {
+  @Inject
+  public void enableStreaming(Streaming streaming) {
     streaming.register(this);
   }
 }
@@ -212,7 +213,7 @@ The `Streaming` wrapper is injected then `TwitterApplication` instance is regist
 
 This is very useful for Android where the Activity object is created by the system. Field injection happens after constructor injection but before method injection.
 
-An interesting thing about field and method injection is that the object usually has to be aware that field injection is happening, simply because that after the constructor has completed there still might be unresolved dependencies. Same for method injection.
+An interesting thing about field and method injection is that the object usually has to be aware that injection is happening, simply because that after the constructor has completed there still might be unresolved dependencies (fields injected outside constructor are still not yet instantiated). Same for method injection.
 
 ```java
 public class TwitterApplication {
@@ -265,11 +266,11 @@ for (Tweet tweet : timeline.get()) {
 }
 ```
 
-The `NetworkModule` has a implicit default constructor. So we can just let Dagger create that module ourselves and we only have to pass in modules that require external state.
+**NOTE:** the `NetworkModule` has a implicit default constructor. So we can just let Dagger create that module ourselves and we only have to pass in modules that require external state.
 
 The TwitterApplication has `@Inject` constructor and it is implicitly available to be injected downstream. That also means it's available to be exposed by a component.
 
-_When we only have field injection and/or method injection, we can actually just put a method on the component which accepts an instance of that type and it will perform field or method injection on it._ We construct the component as we did before but now we create our application ourselves, passes to Dagger, Dagger is going to set the fields on that object and then ultimately we can run our application.
+_When we only have field injection and/or method injection, we can actually just put a method on the component which accepts an instance of that type and it will perform field or method injection on it._ We construct the component as we did before but now we create the application application object ourselves, pass it to Dagger, and then Dagger is going to do injection (through fields and methods annotated with `@Inject`). Then, we can run our application.
 
 ```java
 @Singleton
@@ -278,7 +279,7 @@ _When we only have field injection and/or method injection, we can actually just
   TwitterModule.class
 })
 interface TwitterComponent {
-  void injectActivity(TwitterActivity activity);
+  void injectApplication(TwitterActivity activity);
 }
 ```
 
@@ -287,8 +288,8 @@ TwitterComponent component = Dagger_TwitterComponent.builder().
   twitterModule(new TwitterModule("JakeWharton"))
   .build();
 
-TwitterActivity activity = // Android creates instance...
-component.injectActivity(activity);
+TwitterApplication application = // Android creates instance...
+component.injectApplication(application);
 ```
 
 There's actually a very cool property that you can turn this into a method that actually return the same instance. That allows to have a kind of builder pattern when you invoke the component and immediately get back the injected type.
@@ -300,8 +301,13 @@ There's actually a very cool property that you can turn this into a method that 
   TwitterModule.class
 })
 interface TwitterComponent {
-  TwitterActivity injectActivity(TwitterActivity activity);
+  TwitterApplication injectApplication(TwitterApplication application);
 }
+```
+
+```java
+TwitterApplication application = // Android creates instance...
+component.injectApplication(application).run(); //
 ```
 
 #### Implementation of scopes
