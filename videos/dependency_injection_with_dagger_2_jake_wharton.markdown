@@ -279,7 +279,7 @@ _When we only have field injection and/or method injection, we can actually just
   TwitterModule.class
 })
 interface TwitterComponent {
-  void injectApplication(TwitterActivity activity);
+  void injectApplication(TwitterApplication application);
 }
 ```
 
@@ -300,7 +300,7 @@ There's actually a very cool property that you can turn this into a method that 
   NetworkModule.class,
   TwitterModule.class
 })
-interface TwitterComponent {
+public interface TwitterComponent {
   TwitterApplication injectApplication(TwitterApplication application);
 }
 ```
@@ -340,7 +340,7 @@ public interface TwitterComponent {
 }
 ```
 
-So we have a dependency on the `ApiComponent`. The `TwitterComponent` can no longer be created unless we have an instance of the `ApiComponent`. Now an interesting property of how component work is that this will actually end up failing if I tried to build it. And that's because in `TwitterModule` both the `Tweeter` and the `Timeline` require an instance of `TwitterApi` class. **Components do not expose any types from their modules unless you explicitly make them available**. So that means I have to add a method saying that the `TwitterApi` instance is going to be exposed from the `ApiComponent` and now the `TwitterComponent` can use it to create the TwitterApplication.
+So we have a dependency on the `ApiComponent`. The `TwitterComponent` can no longer be created unless we have an instance of the `ApiComponent`. Now an interesting property of how component work is that this will actually end up failing if we try to build it. And that's because in `TwitterModule` both the `Tweeter` and the `Timeline` require an instance of `TwitterApi` class. **Components do not expose any types from their modules unless you explicitly make them available**. So that means I have to add a method saying that the `TwitterApi` instance is going to be exposed from the `ApiComponent` and now the `TwitterComponent` can use it to create the TwitterApplication.
 
 ```java
 @Component(modules = NetworkModule.class)
@@ -366,3 +366,58 @@ twitterComponent.app().run();
 ```
 
 ### Scope Annotations
+
+- Only create a single instance
+- `@Singleton` is the "largest" scope.
+- Custom annotations for semantic clarity, shorter lifetime.
+
+_Dependency in a scope will only have a single instance._
+
+Singleton scope is traditionally been defined as only having one instance in your entire application. So it's best if you think of it as being topmost scope and then all scopes underneath that have shorter lifetimes, even though those lifetimes maybe the lifetime of your entire app.
+
+Custom annotations add a lot of semantic clarity to what the scope of an object is. So a classic example is the scope of `@RequestScope` object, which is a singleton inside of the lifetime of a single request handling on the server.
+
+All we have to do to create a scope annotation is to create our own annotation which has `@Scope` on top of it.
+
+```java
+@Scope
+public @interface User {
+
+}
+```
+
+To use this, we can now go back to our `TwitterModule` and add this annotation onto the provider methods.
+
+```java
+@Module
+public class TwitterModule {
+  private final String user;
+
+  public TwitterModule(String user) {
+    this.user = user;
+  }
+
+  @Provides @User
+  Tweeter provideTweeter(TwitterApi api) {
+    return new Tweeter(api, user);
+  }
+
+  @Provides @User
+  Timeline provideTimeline(TwitterApi api) {
+    return new Timeline(api, user);
+  }
+}
+```
+
+Likewise with our component, we toss on the user scope.
+
+```java
+@User
+@Component(
+  dependencies = ApiComponent.class,
+  modules = TwitterModule.class
+)
+public interface TwitterComponent {
+    TwitterApplication app();
+}
+```

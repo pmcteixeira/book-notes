@@ -15,6 +15,10 @@ This is a note collection of things that I've read, inspired by [30 second habit
 
 - [HTTP: The Definitive Guide](/books/http-the-definitive-guide/http-the-definitive-guide.markdown)
 
+## Videos
+
+- [Dependency Injection with Dagger 2 - Jake Wharton](videos/dependency_injection_with_dagger_2_jake_wharton.markdown)
+
 ## Links
 
 - [The Clean Architecture](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html)
