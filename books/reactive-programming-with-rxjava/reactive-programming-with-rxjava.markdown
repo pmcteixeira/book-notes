@@ -6,12 +6,6 @@ _These book notes were taken to further my own learning and for quick reference.
 
 ## Chapter 1: Reactive Programming with RxJava
 
-### Reactive Programming and RxJava
-
-**Reactive programming** is a general programming term that is focused on reacting to changes, such as data values or events. It can and often is done **imperatively**. _A callback is an approach to reactive programming done imperatively_. Reactive programming is not **Functional Reactive Programming** (FRP). FRP is a very specific type of reactive programming that involves continuous time, whereas Rx only deals with discrete events over time.
-
-Rx solves callback hell, which results from addressing reactive and asynchronous use cases in an imperative way. RxJava is influenced by functional programming and uses a declarative approach to avoiding the typical pitfalls of reactive imperative code.
-
 ### When You Need Reactive Programming
 
 - Responding to latency-bound IO events.
