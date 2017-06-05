@@ -19,11 +19,7 @@ If your program is like most though, you need to combine events, have conditiona
 
 Central to RxJava is the `Observable` type that represents a stream of data or events. It is intended for push (reactive) but can also be used for pull (interactive). It is lazy rather than eager. It can be used asynchronously or synchronously. It can represent 0, 1, many, or infinite values or events over time.
 
-#### Push versus Pull
-
-`Observable` supports events being pushed at it, but also supports an asynchronous feedback channel (async-pull/reactive-pull) as an approach to control backpressure.
-
-`Observable`/`Observer` pair connect via subscription. The `Observable` represents the stream of data and can be subscribed to by an Observer. Upon subscription, the `Observer` can have three types of events pushed to it:
+`Observable` supports events being pushed at it, but also supports an asynchronous feedback channel (async-pull/reactive-pull) as an approach to control backpressure. `Observable`/`Observer` pair connect via subscription. The `Observable` represents the stream of data and can be subscribed to by an `Observer`. Upon subscription, the `Observer` can have three types of events pushed to it:
 
 ```java
 interface Observer<T> {
@@ -33,9 +29,7 @@ interface Observer<T> {
 }
 ```
 
-> The `onNext()` method might never be called or might be called once, many, or infinite times. The `onError()` and `onCompleted()` are terminal events, meaning that only one of them can be called and only once. When a terminal event is called, the `Observable` stream is finished and no further events can be sent over it. Terminal events might never occur if the stream is infinite and does not fail.
-
-There is an additional type of signature to permit interactive-pull:
+The `onNext()` method might never be called or might be called once, many, or infinite times. The `onError()` and `onCompleted()` are terminal events, meaning that only one of them can be called and only once. When a terminal event is called, the `Observable` stream is finished and no further events can be sent over it. Terminal events might never occur if the stream is infinite and does not fail. There is an additional type of signature to permit interactive-pull:
 
 ```java
 interface Producer {
