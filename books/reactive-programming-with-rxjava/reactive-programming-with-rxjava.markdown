@@ -232,8 +232,6 @@ Observable<Data> rxLoad(int id) {
   return Observable.fromCallable(() ->
     load(id));
 }
-
-// is equivalent to:
 ```
 
 ### Managing multiple subscribers
@@ -364,4 +362,21 @@ There are many applications of `ConnectableObservable`; for example, making sure
 
 Subjects are imperative ways of creating Observables, whereas `ConnectableObservable` shields the original upstream `Observable` and guarantees at most one `Subscriber` reaches it. No matter how many Subscribers connect to `ConnectableObservable`, it opens just one subscription to the `Observable` from which it was created.
 
-#### Single Subscription with `publish().refCount()`
+#### Single Subscription with `observable.publish().refCount()`
+
+This pair of operators is used very frequently and therefore has an alias named `share()`.
+
+The connection is not established until we actually get the first `Subscriber`. But, more important, the second `Subscriber` does not initiate a new connection, it does not even touch the original `Observable`. The `publish().refCount()` tandem wrapped the underlying `Observable` and intercepted all subscriptions.
+
+- `refCount()`: count how many active `Subscriber`s we have at the moment. When this number goes from zero to one, it subscribes to the upstream `Observable`. Every number above one is ignored and the same upstream [mediating] `Subscriber` is simply shared between all downstream `Subscribers`. However, when the very last downstream `Subscriber` unsubscribes, the counter drops from one to zero and `refCount()` knows it must unsubscribe right away.
+
+- `publish()`: we can call `publish()` on any `Observable` and get `ConnectableObservable`.
+
+```java
+ConnectableObservable<Status> published = tweets.publish();
+published.connect();
+```
+
+An useful use case of the `publish()` operator is forcing subscription in the absence of any `Subscriber`. Anyone who subscribes to `ConnectableObservable` is placed in a set of `Subscriber`s. As long as `connect()` is not called, these `Subscriber`s are put on hold, they never directly subscribe to upstream `Observable`. However, when `connect()` is called, a dedicated mediating `Subscriber` subscribes to upstream `Observable` (tweets), no matter how many downstream subscribers appeared before -- even if there were none. But if there were some `Subscriber`s of `ConnectableObservable` put on hold, they will all receive the same sequence of notifications.
+
+> This mechanism has multiple advantages. Imagine that you have an `Observable` in your application in which multiple `Subscriber`s are interested. On startup, several components (e.g., Spring beans or EJBs) subscribe to that `Observable` and begin listening. Without `ConnectableObservable`, it is very likely that hot `Observable` will begin emitting events that will be consumed by the first `Subscriber`, but `Subscriber`s started later will miss out on the early events. This can be a problem if you want to be absolutely sure that all `Subscriber`s receive a consistent view of the world. All of them will receive events in the same order, unfortunately `Subscriber` appearing late will lose early notifications. The solution to this problem is to `publish()` such an `Observable` first and make it possible for all of the components in your system to `subscribe();` for example, during application startup. When you are 100% sure that all `Subscriber`s that need to receive the same sequence of events (including initial event) had a chance to `subscribe()`, connect such `ConnectableObservable` with `connect()`. This will create a single `Subscriber` in upstream `Observable` and begin pushing events to all downstream `Subscriber`s.
